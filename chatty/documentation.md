@@ -92,7 +92,7 @@ const token = jwt.sign({
   picture
 },
   JWT_SECRET!,
-  { expiresIn: "30m" }
+  { expiresIn: "60m" }
 )
 
 res.cookie("user", token, {
