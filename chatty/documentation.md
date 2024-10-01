@@ -34,6 +34,45 @@ One important thing to note here is that I didn't use an authentication service 
 
 In the frontend, I used **React**. For routing and navigation I used **react router dom**. For data fetching, I used **tanstack query**. For styling I used **tailwindcss**.
 
+The server is deployed on **railway** and the client is hosted on **vercel**.
+
 Through this project, I wanted to fortify my knowledge on key concepts of some of the most important technologies used around the world.
 
 # API Documentation
+
+[`/api/auth/google`](https://github.com/hampak/chatty/blob/c9ebcdf987a2848936180fd4ffd285d7a30a4526/server/src/routes/authRoutes.ts#L30-L90) - Api route that gets called when the user clicks on "Start with Google". When this api route gets called, it uses the **google-auth-library** package to create a **redirect url**.
+
+```ts
+const authUrl = oauth2Client.generateAuthUrl({
+  access_type: "offline",
+  scope: 'https://www.googleapis.com/auth/userinfo.profile  openid ',
+  prompt: "consent"
+})
+```
+
+The user is then redirected to the **authUrl** page. In this page, the user selects which Google account they will use to access Chatty.
+
+This route also implements a check where it takes a look at the cookie in the user's web browser. When it retrieves a cookie named **user**, the route will check in the database to see if the decoded token (using JWT) is valid. If it is not valid (say, the user put invalid cookie data), they will get redirected to the **authUrl** page. If the decoded cookie value does turn out to be valid, the user will be redirected to the **/dashboard** page in the client rather than the **authURL** page.
+
+```ts title="/api/auth/google"
+const token = req.cookies.user
+
+if (token) {
+  try {
+    const decoded = jwt.verify(token, JWT_SCRET!)
+    if (typeof decoded !== "string" && decoded.user._id) {
+      User.findById(decoded.user_id).then(user => {
+        if (user) {
+          return res.redirect(`${CLIENT_URL}/dashboard`)
+        } else {
+          // generate authURL and redirect user to the Google login page
+        }
+      })
+    }
+  } catch (error) {
+    // if any error happens, generate authURL and redirect the user to the Google login page
+  }
+} else {
+  // generate authURL and redirect the user to the Google login page
+}
+```
