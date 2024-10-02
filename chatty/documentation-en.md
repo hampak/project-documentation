@@ -215,6 +215,7 @@ Just as a safety measure, if there's anything wrong with the token, the server s
 ### `/api/friend`
 - [`/api/friend`](#apifriend)
 - [`/api/friend/add-friend`](#apifriendadd-friend)
+- `/api/friend/delete-friend` **Not built yet**
 
 #### `/api/friend`
 **Method**: GET
