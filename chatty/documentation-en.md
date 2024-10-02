@@ -213,6 +213,7 @@ Just as a safety measure, if there's anything wrong with the token, the server s
 
 ### `/api/friend`
 - [`/api/friend`](#apifriend)
+- [`/api/friend/add-friend`](#apifriendadd-friend)
 
 #### `/api/friend`
 **Method**: GET
@@ -241,10 +242,17 @@ const friends = friendsList.map(friend => ({
 }))
 ```
 
+#### `/api/friend/add-friend`
+**Method**: POST
 
+This route adds a friend for the user. It receives the **friendUserTag** and **userId** from the client. The api first checks to see if the user is already friends with the current user. If they are already friends, send an error message to the client. Also, check to see if the user is trying to befriend him/herself (as this shouldn't be possible).
 
+After these checks, add the friend's id to the list of the current user's friends in the database. Do it the same vice versa as the friend's friend list should also be updated.
 
+We also update the friends list on redis. We do this so we can quickly read/write in our socket server.
 
+After the friend has been successfully added, send back the following data to the client:
 
-
-
+- friendUserTag - the userTag of the added friend
+- friendName - the name of the added friend
+- friendId - the id of the added friend
