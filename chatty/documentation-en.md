@@ -259,3 +259,36 @@ After the friend has been successfully added, send back the following data to th
 - friendUserTag - the userTag of the added friend
 - friendName - the name of the added friend
 - friendId - the id of the added friend
+
+### `/api/chat`
+- [`/api/chat/chat-list`](#apichatchat-list)
+
+#### `api/chat/chat-list`
+**Method**: GET
+This api route retrieves the list of chats the currently logged in user is participating in. After checking if the **userId** is valid, the api route fetches from the database.
+
+```ts
+const data = await ChatRoom.find({
+  participants: { $elemMatch: { participantId: userId } }
+})
+```
+
+This data is then mapped over. It returns a array of data called **chatRooms** which will be sent to the client.
+
+Because the messages are written and read through redis, we retrieve the **lastMessage** from redis. We also get the data of the chatroom participants.
+
+After that, I also added the logic to get the **lastSeenTimestamp** data and the messages of the chatroom.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
