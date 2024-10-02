@@ -39,6 +39,11 @@ The server is deployed on **railway** and the client is hosted on **vercel**.
 Through this project, I wanted to fortify my knowledge on key concepts of some of the most important technologies used around the world.
 
 # API Documentation
+- [`api/auth/google`](#apiauthgoogle)
+- [`api/auth/google/callback`](#apiauthgooglecallback)
+- [`api/auth/github`](#apiauthgithub)
+- [`api/auth/github/callback`](#apiauthgithubcallback)
+- [`api/auth/check-auth`](#apiauthcheck-auth)
 
 ### `/api/auth/google`
 Api route that gets called when the user clicks on "Start with Google". When this api route gets called, it uses the **google-auth-library** package to create a **redirect url**.
