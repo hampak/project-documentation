@@ -1,9 +1,10 @@
 # Table of Contents
 1. [Project Overview](#project-overview)
 2. [API Documentation](#api-documentation)
-3. Features
-4. Notable Bugs & Problems I encountered
-5. Learning Experience
+3. [Web Socket Documentation](#web-socket-documentation)
+4. Features
+5. Notable Bugs & Problems I encountered
+6. Learning Experience
 
 # Project Overview
 Chatty is a chatting application where users can communicate with each other. The idea of real-time communication has always intrigued me and I was really interested in building a project like this. I learned a lot of technologies while building this project such as **redis** and **web sockets**.
