@@ -46,6 +46,7 @@ Through this project, I wanted to fortify my knowledge on key concepts of some o
 - [`api/auth/github`](#apiauthgithub)
 - [`api/auth/github/callback`](#apiauthgithubcallback)
 - [`api/auth/check-auth`](#apiauthcheck-auth)
+- [`api/auth/logout`](#apiauthlogout)
 
 #### `/api/auth/google`
 **Method**: GET
