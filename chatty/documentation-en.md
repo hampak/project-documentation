@@ -263,6 +263,7 @@ After the friend has been successfully added, send back the following data to th
 ### `/api/chat`
 - [`/api/chat/chat-list`](#apichatchat-list)
 - [`/api/chat/create-chat`](#apichatcreate-chat)
+- [`/api/chat/chat-info`](#apichatchat-info)
 
 #### `api/chat/chat-list`
 **Method**: GET
@@ -390,6 +391,43 @@ const chatRoom = new ChatRoom({
 await chatRoom.save()
 ```
 
+#### `api/chat/chat-info`
+**Method**: GET
+This api route retrieves the data vital for the chatroom including the actual messages sent by users. When a user clicks on a chatroom in the client, the user is navigated to the chatroom page, triggering this route.
+
+Just to make sure that the user isn't trying to access a chatroom he/she isn't part of, I added this code:
+
+```ts
+const isParticipant = chatRoomInfo.participants.some(participant =>
+  participant.participantId.toString() === user._id.toString()
+)
+
+if (!isParticipant) {
+  return res.status(403).json({
+    message: "You're not part of this chat :("
+  })
+}
+```
+
+The messages are queried from redis and stored in an array **messages**.
+
+```ts
+const rawMessages = await redis.zrange(`messages-${chatId}`, 0, -1, "WITHSCORES")
+const messages = []
+for (let i = 0; i < rawMessages.length; i += 2) {
+  const messageJson = rawMessages[i]
+  const timestamp = rawMessages[i + 1]
+  if (messageJson && timestamp) {
+    const message = JSON.parse(messageJson!)
+    message.timeStamp = parseInt(timestamp!, 10)
+    messages.push(message)
+  }
+}
+```
+
+The most important data sent to the client is the messages.
+
+- messages - the messages. Each message is an object with the actual message, the sender's id, the send timestamp, and the sender's profile image.
 
 
 
