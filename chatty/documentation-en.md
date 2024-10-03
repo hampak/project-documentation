@@ -40,6 +40,10 @@ The server is deployed on **railway** and the client is hosted on **vercel**.
 Through this project, I wanted to fortify my knowledge on key concepts of some of the most important technologies used around the world.
 
 # API Documentation
+- [`/api/auth`](#apiauth)
+- [`/api/user`](#apiuser)
+- [`/api/friend`](#apifriend)
+- [`/api/chat`](#apichat)
 
 ### `/api/auth`
 - [`api/auth/google`](#apiauthgoogle)
