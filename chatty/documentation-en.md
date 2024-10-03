@@ -262,6 +262,7 @@ After the friend has been successfully added, send back the following data to th
 
 ### `/api/chat`
 - [`/api/chat/chat-list`](#apichatchat-list)
+- [`/api/chat/create-chat`](#apichatcreate-chat)
 
 #### `api/chat/chat-list`
 **Method**: GET
@@ -335,10 +336,59 @@ After all this, we send these values to the client:
 - lastMessage - this is the last message that will be displayed in the client's UI
 - unreadMessagesCount - this is the number of messages that the current user didn't see
 
+#### `api/chat/create-chat`
+**Method**: POST
+This api route creates a chat. The server receives data of the current user's friend(s) and creates a chatroom.
 
+The code does some simple checks to see if the request is being sent without any friends selected. The code then checks to see if the current user is trying to create a 1 on 1 chat or a chatroom with more than 2 users. If it's the first case, we do a check to see if the chatroom already exists (if there's already a chatroom consisting of the current user & the friend).
 
+```ts
+const chatroomAlreadyExists = await ChatRoom.findOne({
+  participants: {
+    $all: [
+      { $elemMatch: { participantId: friendData[0].friendId } },
+      { $elemMatch: { participantId: currentUserId } }
+    ]
+  },
+  $expr: { $eq: [{ $size: "$participants" }, 2] }
+})
 
+if (chatroomAlreadyExists) {
+  return res.redirect(`CLIENT_URL/dashboard/chat/${chatroomAlreadyExists._id}`)
+}
 
+const chatRoom = new ChatRoom({
+  room_title: `${currentUserName}, ${friendData[0].friendName}`,
+  participants: [
+    { participantId: currentUserId, participantPicture: currentUserPicture },
+    { participantId: friendData[0].friendId, participantPicture: friendData[0].friendPicture }
+  ]
+})
+
+await chatRoom.save()
+```
+
+If the current user is trying to create a group chat, we don't check if a group chat consisting of the same users exists. This is an exception that I made where a user can create another group chat consisting of the same users.
+
+```ts
+const userNames = friendData.map((friend: Friend) => friend.friendName)
+const roomTitle = `${currentUserName}, ${userNames.join(", ")}`
+
+const participants = [
+  { participantId: currentUserId, participantPicture: currentUserPicture },
+  ...friendData.map((friend: Friend) => ({
+    participantId: friend.friendId,
+    participantPicture: friend.friendPicture
+  }))
+]
+
+const chatRoom = new ChatRoom({
+  room_title: roomTitle,
+  participants: participants,
+})
+
+await chatRoom.save()
+```
 
 
 
