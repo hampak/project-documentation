@@ -273,13 +273,27 @@ const data = await ChatRoom.find({
 })
 ```
 
-This data is then mapped over. It returns a array of data called **chatRooms** which will be sent to the client.
+This data is then mapped over. It returns an array of data called **chatRooms** which will be sent to the client.
 
-Because the messages are written and read through redis, we retrieve the **lastMessage** from redis. We also get the data of the chatroom participants.
+The main logic happens within this `.map()`. First, we retrieve the last message which will be shown in the current user's UI. We do this by querying redis and getting the most recent message.
 
-After that, I also added the logic to get the **lastSeenTimestamp** data and the messages of the chatroom.
+```ts
+const lastMessageRaw = await redis.zrange(`messages-${room._id}`, -1, -1)
+lastMessage = lastMessageRaw[0] ? JSON.parse(lastMessageRaw[0]) : ""
+```
 
+After this, the names of the participants are extracted. Note that the current user's name isn't sent to the client.
 
+```ts
+const allParticipants = room.room_title.split("|").map(p => p.trim())
+const friendName = allParticipants.find(p => p !== name)
+```
+
+Then, we retrieve the "last seen" value of the chatroom. This is done by getting the value from redis.
+
+```ts
+const lastSeenTimestamp = await redis.get(`last_seen-${userId}-${chatRoomId}`)
+```
 
 
 
