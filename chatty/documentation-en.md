@@ -271,6 +271,7 @@ After the friend has been successfully added, send back the following data to th
 
 #### `api/chat/chat-list`
 **Method**: GET
+
 This api route retrieves the list of chats the currently logged in user is participating in. After checking if the **userId** is valid, the api route fetches from the database.
 
 ```ts
@@ -343,6 +344,7 @@ After all this, we send these values to the client:
 
 #### `api/chat/create-chat`
 **Method**: POST
+
 This api route creates a chat. The server receives data of the current user's friend(s) and creates a chatroom.
 
 The code does some simple checks to see if the request is being sent without any friends selected. The code then checks to see if the current user is trying to create a 1 on 1 chat or a chatroom with more than 2 users. If it's the first case, we do a check to see if the chatroom already exists (if there's already a chatroom consisting of the current user & the friend).
@@ -397,6 +399,7 @@ await chatRoom.save()
 
 #### `api/chat/chat-info`
 **Method**: GET
+
 This api route retrieves the data vital for the chatroom including the actual messages sent by users. When a user clicks on a chatroom in the client, the user is navigated to the chatroom page, triggering this route.
 
 Just to make sure that the user isn't trying to access a chatroom he/she isn't part of, I added this code:
