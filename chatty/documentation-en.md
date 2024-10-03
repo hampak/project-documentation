@@ -436,8 +436,21 @@ The most important data sent to the client is the messages.
 
 - messages - the messages. Each message is an object with the actual message, the sender's id, the send timestamp, and the sender's profile image.
 
+# Web Socket Documentation
+Real-time functionality is vital for a chatting application. Here is a list of socket events emitted/received by the server/client.
 
+- [`emit("userOnline")`](emituseronline)
 
+#### `emit("userOnline")`
+**Where**: Client
 
+When the user logs in or refreshes the page from the client, this event is emitted to the server with the currently logged in user's id.
 
+```ts
+socket.emit("userOnline", user.id)
+```
 
+#### `on("userOnline")`
+**Where**: Server
+
+When the user logs in to the client, the socket server receives the event which contains the user's id.
