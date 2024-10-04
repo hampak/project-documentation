@@ -440,6 +440,7 @@ The most important data sent to the client is the messages.
 Real-time functionality is vital for a chatting application. Here is a list of socket events emitted/received by the server/client.
 
 - [`emit("userOnline")`](emituseronline)
+- [`on("userOnline")`](onuseronline)
 
 #### `emit("userOnline")`
 **Where**: Client
@@ -453,4 +454,24 @@ socket.emit("userOnline", user.id)
 #### `on("userOnline")`
 **Where**: Server
 
-When the user logs in to the client, the socket server receives the event which contains the user's id.
+When the user logs in to the client, the socket server receives the event which contains the user's id. This is one of the most important code in Chatty. Because users can see their friend's online status (online | away | online), the logic here was important.
+
+We first retrieve the current user's status from redis.
+
+```ts
+const status = await redis.hget(`user:${userId}`, "status")
+```
+
+We then check if the user's status is either "online" || null or if it's "away". If it's the former case, we set the user's status to "online" just to be sure about the case if the status is "null".
+
+After that, the code retrieves the list of friends of the current user. If there are no friends, the socket server sends the online status of **only the current user** which will be displayed on the user's UI.
+
+```ts
+const friends: string[] = await redis.smembers(`friends-${userId}`)
+
+const currentUserStatus = "online"
+
+if (friends.length === 0) {
+  return io.to(socket.id).emit("retrieveCurrentUser", socket.id, currentUserStatus)
+}
+```
