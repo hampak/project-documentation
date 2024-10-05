@@ -475,3 +475,43 @@ if (friends.length === 0) {
   return io.to(socket.id).emit("retrieveCurrentUser", socket.id, currentUserStatus)
 }
 ```
+
+If the user has more than one friend, we send that friend the status of the current user. The current users' status will be added or changed in the friend's client state.
+
+```ts
+const friendsSocketIdsPromise: Promise<string | null>[] = friends.map(async (friendId) => {
+  return await redis.hget(`user:${friendId}`, "socketId")
+})
+
+const friendDataPromises = friends.map(friendId => {
+  return new Promise<[string | null, string | null]>((resolve) => {
+    redis.hmget(`user:${friendId}`, "socketId", "status", (err, values) => {
+      resolve(values as [string | null, string | null]);
+    })
+  })
+})
+
+const friendData: [string | null, string | null][] = await Promise.all(friendDataPromises)
+const friendSocketId: (string | null)[] = await Promise.all(friendsSocketIdsPromise)
+
+const filteredOnlineFriends: Record<string, { status: string | null; socketId: string | null }> = friendData.reduce((result, [socketId, status], index) => {
+  const friendId = friends[index]
+  if (status && friendId) {
+    result[friendId] = { status, socketId };
+  }
+  return result
+}, {} as Record<string, { status: string | null; socketId: string | null }>);
+
+io.to(socket.id).emit("retrieveOnlineFriends", filteredOnlineFriends)
+
+const validFriendSocketIds = friendSocketId.filter(id => id !== null && id !== undefined);
+
+return validFriendSocketIds.forEach(async id => {
+  // send the current user's id + socket id to his/her friends. The client will append / change this value and track it in a state
+  io.to(id).emit("getOnlineFriend", currentUserId, socket.id, status)
+})
+```
+
+We extract the socket ids of the current user's friend along with the friend's online status data. The data is emitted to the current user via the `retrieveOnlineFriends` event to the client. After that, the current user's online status gets emitted to the friend(s).
+
+The logic is identical when the status is **away** for the current user.
