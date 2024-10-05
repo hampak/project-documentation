@@ -445,6 +445,8 @@ Real-time functionality is vital for a chatting application. Here is a list of s
 - [`on("retrieveCurrentUser")`](#onretrieveCurrentUser)
 - [`emit("getOnlineFriend")`](#emitgetOnlineFriend)
 - [`on("getOnlineFriend")`](#ongetOnlineFriend)
+- [`on("retrieveOnlineFriends")`](#onretrieveOnlineFriends)
+- [`emit("retrieveOnlineFriends")`](#emitretrieveOnlineFriends)
 
 #### `emit("userOnline")`
 **Where**: Client
