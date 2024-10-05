@@ -447,6 +447,8 @@ Real-time functionality is vital for a chatting application. Here is a list of s
 - [`on("getOnlineFriend")`](#ongetOnlineFriend)
 - [`emit("retrieveOnlineFriends")`](#emitretrieveOnlineFriends)
 - [`on("retrieveOnlineFriends")`](#onretrieveOnlineFriends)
+- [`emit("changeStatus")`](#emitchangeStatus)
+- [`on("changeStatus")`](#onchangeStatus)
 
 #### `emit("userOnline")`
 **Where**: Client
@@ -610,5 +612,56 @@ When the user logs in or refreshes the client (and has more than 1 friend), this
 ```ts
 socket.on("retrieveOnlineFriends", async (data) => {
   setOnlineFriends(data)
+})
+```
+
+#### `emit("changeStatus")`
+**Where**: Client
+
+When the user changes his/her status in the client, this event is triggered from the client. It contains the the user's id and the status (which is either "online" or "away").
+
+```ts
+const onSubmit = async (values: { status: "online" | "away" }) => {
+    setIsLoading(true)
+    socket.emit("changeStatus", values.status, user?.id)
+    setTimeout(() => {
+      setOpen(false)
+      setIsLoading(false)
+    }, 1000)
+  }
+```
+
+#### `on("#### `on("changeStatus")`
+**Where**: Server
+
+When the **changeStatus** is sent from the client, this event is received from the server. This event has important logic in it where it sends the current user his/her updated status. It also sends the friends the updated online status of the user.
+
+The code updates the user's status in redis. Checks to see if the user has friends or not. If the user doesn't have any friends, it only sends the current user's updated status to the client.
+
+```ts
+await redis.hset(`user:${userId}`, "status", status)
+
+const friends: string[] = await redis.smembers(`friends-${userId}`)
+
+if (friends.length === 0) {
+  return io.to(socket.id).emit("retrieveCurrentUser", socket.id, status)
+}
+```
+
+The rest of the logic is similar to what we did above. We get the socket ids of the friends, map them over and send the updated online status of the current user.
+
+```ts
+const friendsSocketIdsPromise: Promise<string | null>[] = friends.map(async (friendId) => {
+  return await redis.hget(`user:${friendId}`, "socketId")
+})
+
+const friendSocketId: (string | null)[] = await Promise.all(friendsSocketIdsPromise)
+
+const validSocketIds = friendSocketId.filter(id => id !== null && id !== undefined);
+
+validSocketIds.push(socket.id)
+
+validSocketIds.forEach(id => {
+  io.to(id).emit("getOnlineFriend", currentUserId, socket.id, status)
 })
 ```
