@@ -441,6 +441,8 @@ Real-time functionality is vital for a chatting application. Here is a list of s
 
 - [`emit("userOnline")`](emituseronline)
 - [`on("userOnline")`](onuseronline)
+- [`emit("retrieveCurrentUser")`](emitretrieveCurrentUser)
+- [`emit("retrieveCurrentUser")`](onretrieveCurrentUser)
 
 #### `emit("userOnline")`
 **Where**: Client
@@ -515,3 +517,26 @@ return validFriendSocketIds.forEach(async id => {
 We extract the socket ids of the current user's friend along with the friend's online status data. The data is emitted to the current user via the `retrieveOnlineFriends` event to the client. After that, the current user's online status gets emitted to the friend(s).
 
 The logic is identical when the status is **away** for the current user.
+
+#### `emit("retrieveCurrentUser")`
+**Where**: Server
+
+This is a simple event containing the current online status of the current user.
+
+```ts
+io.to(socket.id).emit("retrieveCurrentUser", socket.id, currentUserStatus)
+```
+
+#### `on("retrieveCurrentUser")`
+**Where**: Client
+
+When the client receives the **retrieveCurrentUser** event from the server, it sets the user's current online status and the user's socket id in a state.
+
+```ts
+socket.on("retrieveCurrentUser", async (currentUserSocketId: string, currentUserStatus: "online" | "away") => {
+  setCurrentStatus({
+    socketId: currentUserSocketId,
+    status: currentUserStatus
+  })
+})
+```
