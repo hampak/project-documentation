@@ -605,6 +605,8 @@ io.to(socket.id).emit("retrieveOnlineFriends", filteredOnlineFriends)
 
 When the user logs in or refreshes the client (and has more than 1 friend), this event is emitted from the server. The client stores this data in the state.
 
+> Any status changes happening AFTER the user logs in / refreshes triggers the [getOnlineFriend](#emitgetonlinefriend) event and not this one!
+
 ```ts
 socket.on("retrieveOnlineFriends", async (data) => {
   setOnlineFriends(data)
