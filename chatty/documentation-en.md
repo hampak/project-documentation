@@ -439,10 +439,12 @@ The most important data sent to the client is the messages.
 # Web Socket Documentation
 Real-time functionality is vital for a chatting application. Here is a list of socket events emitted/received by the server/client.
 
-- [`emit("userOnline")`](emituseronline)
-- [`on("userOnline")`](onuseronline)
-- [`emit("retrieveCurrentUser")`](emitretrieveCurrentUser)
-- [`emit("retrieveCurrentUser")`](onretrieveCurrentUser)
+- [`emit("userOnline")`](#emituseronline)
+- [`on("userOnline")`](#onuseronline)
+- [`emit("retrieveCurrentUser")`](#emitretrieveCurrentUser)
+- [`on("retrieveCurrentUser")`](#onretrieveCurrentUser)
+- [`emit("getOnlineFriend")`](#emitgetOnlineFriend)
+- [`on("getOnlineFriend")`](#ongetOnlineFriend)
 
 #### `emit("userOnline")`
 **Where**: Client
@@ -537,6 +539,42 @@ socket.on("retrieveCurrentUser", async (currentUserSocketId: string, currentUser
   setCurrentStatus({
     socketId: currentUserSocketId,
     status: currentUserStatus
+  })
+})
+```
+
+#### `emit("getOnlineFriend")`
+**Where**: Server
+
+This event is emitted from the server. It's one of the most important socket events in this application as it sends the current user's online status to the friends. After querying the socket ids of the current user's friend, we map that array and send the friends with relevant data.
+
+```ts
+return validFriendSocketIds.forEach(async id => {
+  // send the current user's id + socket id to his/her friends. The client will append / change this value and track it in a state
+  io.to(id).emit("getOnlineFriend", currentUserId, socket.id, status)
+})
+```
+
+**A more detailed explanation of the entire code flow is stated [above](#onuseronline)**
+
+#### `on("getOnlineFriend")`
+**Where**: Client
+
+When the client receives the **getOnlineFriend** event from the server, the friend's data is stored/updated in the client's state. If the friend's data doesn't exist in the state, it's added. If the friend's data already exists, it's updated.
+
+**Note that this event is triggered after the user is logged in. When the user refreshes the page or logs in, the server sends the most up-to-date data on the friend's online status. However, for anything that's changed AFTER the user connects, **getOnlineFriend** is triggered. When the user refreshes or logs in, the [retrieveOnlineFriends](#emitretrieveOnlineFriends) is triggered**.
+
+```ts
+socket.on("getOnlineFriend", async (updatedFriendId: string, updatedFriendSocketId: string, updatedFriendStatus: "online" | "away") => {
+
+  setOnlineFriends(prevOnlineFriends => {
+    return {
+      ...prevOnlineFriends,
+      [updatedFriendId]: {
+        status: updatedFriendStatus,
+        socketId: updatedFriendSocketId
+      }
+    }
   })
 })
 ```
