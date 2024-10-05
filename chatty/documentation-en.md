@@ -631,7 +631,7 @@ const onSubmit = async (values: { status: "online" | "away" }) => {
   }
 ```
 
-#### `on("#### `on("changeStatus")`
+#### `on("changeStatus")`
 **Where**: Server
 
 When the **changeStatus** is sent from the client, this event is received from the server. This event has important logic in it where it sends the current user his/her updated status. It also sends the friends the updated online status of the user.
