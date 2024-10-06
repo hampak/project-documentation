@@ -453,6 +453,8 @@ Real-time functionality is vital for a chatting application. Here is a list of s
 - [`on("addFriend")`](#onaddFriend)
 - [`emit("addedAsFriend")`](#emitaddedAsFriend)
 - [`on("addedAsFriend")`](#onaddedAsFriend)
+- [`emit("addedInChatroom")`](#emitaddedInChatroom)
+- [`on("addedInChatroom")`](#onaddedInChatroom)
 
 #### `emit("userOnline")`
 **Where**: Client
@@ -720,6 +722,41 @@ socket.on("addedAsFriend", async () => {
   await queryClient.invalidateQueries({ queryKey: ["friend_list", userId] })
 })
 ```
+
+#### `emit("addedInChatroom")`
+**Where**: Client
+
+When a user creates a chat (with a friend), this event is emitted from the client. It's main purpose is to update the chat list of the people involved in the chat.
+
+```ts
+socket.emit("addedInChatroom", user?.id, friendIds, data.chatroomId, onlineFriends)
+```
+
+The important thing to note here is that he have to send the **onlineFriends** as it contains the socket ids of the friends. We will use these ids to emit an event to the friend's client to update their UI.
+
+#### `on("addedInChatroom")`
+**Where**: Server
+
+We filter the socket ids so that it only includes those of the chatroom participants. We map over them and emit an **addedInChatroom** event to those friends.
+
+```ts
+friendSocketIds.forEach(socketId => {
+  return io.to(socketId).emit("addedInChatroom")
+})
+```
+
+**Where**: Client
+
+When emitted from the server, we invalidate the chat list in the friend's client.
+
+```ts
+socket.on("addedInChatroom", async () => {
+  await queryClient.invalidateQueries({ queryKey: ["chat_list", user?.id] })
+})
+```
+
+
+
 
 
 
