@@ -451,6 +451,8 @@ Real-time functionality is vital for a chatting application. Here is a list of s
 - [`on("changeStatus")`](#onchangeStatus)
 - [`emit("addFriend")`](#emitaddFriend)
 - [`on("addFriend")`](#onaddFriend)
+- [`emit("addedAsFriend")`](#emitaddedAsFriend)
+- [`on("addedAsFriend")`](#onaddedAsFriend)
 
 #### `emit("userOnline")`
 **Where**: Client
@@ -696,6 +698,26 @@ socket.on("addFriend", async (friendId: string, userId: string, socketId: string
   io.to(socket.id).emit("getOnlineFriend", friendId, friendSocketId, friendStatus)
   io.to(friendSocketId).emit("getOnlineFriend", userId, socketId, status)
   io.to(friendSocketId).emit("addedAsFriend")
+})
+```
+
+#### `emit("addedAsFriend")`
+**Where**: Server
+
+As stated above, this event is emitted to the added friend. The friend's friends list is invalidated.
+
+```ts
+io.to(friendSocketId).emit("addedAsFriend")
+```
+
+#### `on("addedAsFriend")`
+**Where**: Client
+
+When sent from the server, the client's friends list is invalidated.
+
+```ts
+socket.on("addedAsFriend", async () => {
+  await queryClient.invalidateQueries({ queryKey: ["friend_list", userId] })
 })
 ```
 
