@@ -455,6 +455,12 @@ Real-time functionality is vital for a chatting application. Here is a list of s
 - [`on("addedAsFriend")`](#onaddedAsFriend)
 - [`emit("addedInChatroom")`](#emitaddedInChatroom)
 - [`on("addedInChatroom")`](#onaddedInChatroom)
+- [`emit("connectedToRoom")`](#emitconnectedToRoom)
+- [`on("connectedToRoom")`](#onconnectedToRoom)
+- [`emit("joinedChatroom")`](#emitjoinedChatroom)
+- [`on("joinedChatroom")`](#onjoinedChatroom)
+
+
 
 #### `emit("userOnline")`
 **Where**: Client
@@ -754,6 +760,36 @@ socket.on("addedInChatroom", async () => {
   await queryClient.invalidateQueries({ queryKey: ["chat_list", user?.id] })
 })
 ```
+
+#### `emit("connectedToRoom")`
+**Where**: Client
+
+When a user navigates to a chatroom, this socket event is triggered from the client. It sends the **chatroomId** and the *user.id** to the server.
+
+```ts
+socket.emit("connectedToRoom", chatroomId, user.id)
+```
+
+#### `on("connectedToRoom")`
+**Where**: Server
+
+The **connectedToRoom** is very important as it serves important features in Chatty. First of all, it joins the current user to a socket room with the id of being the chatroom id. Another important feature is that it saves the "last seen" value in redis. This is essential as this value is used in the client's UI to indicate how many messages a user didn't see.
+
+```ts
+const timestamp = Date.now()
+await socket.join(chatroomId);
+await redis.set(`last_seen-${userId}-${chatroomId}`, timestamp)
+
+io.to(chatroomId).emit("joined-chatroom")
+```
+
+
+
+
+
+
+
+
 
 
 
