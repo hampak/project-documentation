@@ -449,6 +449,8 @@ Real-time functionality is vital for a chatting application. Here is a list of s
 - [`on("retrieveOnlineFriends")`](#onretrieveOnlineFriends)
 - [`emit("changeStatus")`](#emitchangeStatus)
 - [`on("changeStatus")`](#onchangeStatus)
+- [`emit("addFriend")`](#emitaddFriend)
+- [`on("addFriend")`](#onaddFriend)
 
 #### `emit("userOnline")`
 **Where**: Client
@@ -665,3 +667,37 @@ validSocketIds.forEach(id => {
   io.to(id).emit("getOnlineFriend", currentUserId, socket.id, status)
 })
 ```
+
+#### `emit("addFriend")`
+**Where**: Client
+
+When a user adds a friend, this event is emitted to the server. THe main purpose of this event is to update the friend's friend list. When the friend receives this event, the query is invalidated.
+
+```ts
+socket.emit("addFriend", data.friendId, user?.id, currentStatus?.socketId, currentStatus?.status)
+```
+
+#### `on("addFriend")`
+**Where**: Server
+
+When emitted from the client, we retrieve the friend's online status and socket id values from redis. We then check if the user has a socket id. If one doesn't exist, it means that the friend isn't online where we don't have to invalidate the query for the friend. However, if that's not the case, we **emit** the **getOnlineFriend** to the current user and the added friend. This is because when each other's friends list gets updated, the online status indicator also needs to show the correct status. Other than that, we **emit** the **addedAsFriend** to the friend which will trigger a query invalidation.
+
+```ts
+socket.on("addFriend", async (friendId: string, userId: string, socketId: string, status: "online" | "away") => {
+
+  const addedFriend = await redis.hmget(`user:${friendId}`, "socketId", "status")
+
+  const friendSocketId = addedFriend[0]
+  const friendStatus = addedFriend[1]
+
+  // if the friend isn't logged in (or not online on our app)
+  if (!friendSocketId) return
+
+  io.to(socket.id).emit("getOnlineFriend", friendId, friendSocketId, friendStatus)
+  io.to(friendSocketId).emit("getOnlineFriend", userId, socketId, status)
+  io.to(friendSocketId).emit("addedAsFriend")
+})
+```
+
+
+
