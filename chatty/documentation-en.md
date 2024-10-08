@@ -795,9 +795,13 @@ io.to(chatroomId).emit("joinedChatroom")
 #### `on("joinedChatroom")`
 **Where**: Client
 
-When a user successfully connects to the chatroom socket room, 
+When a user successfully connects to the chatroom socket room, this event is sent from the server. The client then uses this event to execute some logic. This includes enabling the message input component. This is important as we don't want the user to be able to send messages when he/she isn't joined in that socket room.
 
-
+```ts
+socket.on("joinedChatroom", () => {
+  setIsConnected(true)
+});
+```
 
 
 
