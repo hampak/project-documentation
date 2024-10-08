@@ -461,7 +461,8 @@ Real-time functionality is vital for a chatting application. Here is a list of s
 - [`on("joinedChatroom")`](#onjoinedChatroom)
 - [`emit("leaveChatroom")`](#emitleaveChatroom)
 - [`on("leaveChatroom")`](#onleaveChatroom)
-
+- [`emit("sendMessage")`](#emitsendMessage)
+- [`on("sendMessage")`](#onsendMessage)
 
 
 #### `emit("userOnline")`
@@ -834,7 +835,27 @@ socket.on("leaveChatroom", async (chatroomId, userId) => {
 
 The code is simple but very important. We get date of the moment when this event was received. We then set the **last_seen** data in redis. The user also leaves from the socket room.
 
+#### `emit("sendMessage")`
+**Where**: Client
 
+This event is called when the client sends a message. It sends values such as the actual message, sender Id, sender image, and the socket id of the sender's friends (who are a participant in the chatroom)
+
+#### `on("sendMessage")`
+**Where**: Server
+
+The message is stored in the redis database.
+
+```ts
+const timestamp = Date.now()
+await redis.zadd(`messages-${chatroomId}`, timestamp, JSON.stringify({
+  message,
+  senderId,
+  timestamp,
+  senderImage
+}))
+```
+
+It also emits the **message** and the **lastMessage** event.
 
 
 
