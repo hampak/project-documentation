@@ -459,6 +459,8 @@ Real-time functionality is vital for a chatting application. Here is a list of s
 - [`on("connectToRoom")`](#onconnectToRoom)
 - [`emit("joinedChatroom")`](#emitjoinedChatroom)
 - [`on("joinedChatroom")`](#onjoinedChatroom)
+- [`emit("leaveChatroom")`](#emitleaveChatroom)
+- [`on("leaveChatroom")`](#onleaveChatroom)
 
 
 
@@ -803,7 +805,34 @@ socket.on("joinedChatroom", () => {
 });
 ```
 
+#### `emit("leaveChatroom")`
+**Where**: Client
 
+This event is emitted when the client navigates out of a chatroom. There's two cases where this can happen:
+
+1. The user navigates from a chatroom page to the dashboard (or any other page that isn't a chatroom)
+2. The user navigates from one chatroom to another
+
+Now, the "leaveChatroom" is very important in that it stores the "lastSeen" value. This is used to show the number of unread messages of a certain user.
+
+```ts
+socket.emit("leaveChatroom", previousChatroomId.current, user.id)
+```
+
+The client emits this event with the previous chatroom id and the user id.
+
+#### `on("leaveChatroom")`
+**Where**: Server
+
+```ts
+socket.on("leaveChatroom", async (chatroomId, userId) => {
+  const timestamp = Date.now()
+  await redis.set(`last_seen-${userId}-${chatroomId}`, timestamp)
+  await socket.leave(chatroomId))
+})
+```
+
+The code is simple but very important. We get date of the moment when this event was received. We then set the **last_seen** data in redis. The user also leaves from the socket room.
 
 
 
