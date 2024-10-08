@@ -455,8 +455,8 @@ Real-time functionality is vital for a chatting application. Here is a list of s
 - [`on("addedAsFriend")`](#onaddedAsFriend)
 - [`emit("addedInChatroom")`](#emitaddedInChatroom)
 - [`on("addedInChatroom")`](#onaddedInChatroom)
-- [`emit("connectedToRoom")`](#emitconnectedToRoom)
-- [`on("connectedToRoom")`](#onconnectedToRoom)
+- [`emit("connectToRoom")`](#emitconnectToRoom)
+- [`on("connectToRoom")`](#onconnectToRoom)
 - [`emit("joinedChatroom")`](#emitjoinedChatroom)
 - [`on("joinedChatroom")`](#onjoinedChatroom)
 
@@ -761,19 +761,19 @@ socket.on("addedInChatroom", async () => {
 })
 ```
 
-#### `emit("connectedToRoom")`
+#### `emit("connectToRoom")`
 **Where**: Client
 
-When a user navigates to a chatroom, this socket event is triggered from the client. It sends the **chatroomId** and the *user.id** to the server.
+When a user navigates to a chatroom, this socket event is triggered from the client. It sends the **chatroomId** and the **user.id** to the server.
 
 ```ts
 socket.emit("connectedToRoom", chatroomId, user.id)
 ```
 
-#### `on("connectedToRoom")`
+#### `on("connectToRoom")`
 **Where**: Server
 
-The **connectedToRoom** is very important as it serves important features in Chatty. First of all, it joins the current user to a socket room with the id of being the chatroom id. Another important feature is that it saves the "last seen" value in redis. This is essential as this value is used in the client's UI to indicate how many messages a user didn't see.
+The **connectToRoom** is very important as it serves important features in Chatty. First of all, it joins the current user to a socket room with the id of being the chatroom id. Another important feature is that it saves the "last seen" value in redis. This is essential as this value is used in the client's UI to indicate how many messages a user didn't see.
 
 ```ts
 const timestamp = Date.now()
@@ -783,10 +783,19 @@ await redis.set(`last_seen-${userId}-${chatroomId}`, timestamp)
 io.to(chatroomId).emit("joined-chatroom")
 ```
 
+#### `emit("joinedChatroom")`
+**Where**: Server
 
+This event is emitted from the server after a user successfully joins the chatroom socket room.
 
+```ts
+io.to(chatroomId).emit("joinedChatroom")
+```
 
+#### `on("joinedChatroom")`
+**Where**: Client
 
+When a user successfully connects to the chatroom socket room, 
 
 
 
