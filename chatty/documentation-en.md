@@ -927,7 +927,7 @@ Here's the relevant client code. If `data.id` is equal to `chatroomId`, it means
 
 Next, if the `chatId` is not equal to `chatroomId`, it means that the user is not currently in that chatroom. In that case, we also have to show an indicator (in our case, a number) to show how many messages haven't been seen yet.
 
-#### `emit("message")`
+#### `emit("logout")`
 **Where**: Client
 
 When the user logs out, this event is emitted to the server.
@@ -936,7 +936,7 @@ When the user logs out, this event is emitted to the server.
 socket.emit("logout", user?.id)
 ```
 
-#### `on("message")`
+#### `on("logout")`
 **Where**: Server
 
 When a user logs out, it first checks iff that logging out user has any friends. If not, it just changes the user's status to **offline**. However, if the user has friends, it goes over the same logic as [getOnlineFriend](#emitgetonlinefriend). It sends an event to the user's friends so that the friend's will see that the user's status is offline.
