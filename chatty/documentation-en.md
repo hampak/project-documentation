@@ -463,6 +463,8 @@ Real-time functionality is vital for a chatting application. Here is a list of s
 - [`on("leaveChatroom")`](#onleaveChatroom)
 - [`emit("sendMessage")`](#emitsendMessage)
 - [`on("sendMessage")`](#onsendMessage)
+- [`emit("message")`](#emitmessage)
+- [`on("message")`](#onmessage)
 
 
 #### `emit("userOnline")`
