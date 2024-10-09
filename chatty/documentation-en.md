@@ -956,4 +956,4 @@ https://github.com/user-attachments/assets/e09fa1ec-5668-464b-ac2f-fc7d2898d51c
 
 **When a user changes status**
 
-https://github.com/user-attachments/assets/bdba9b98-4796-432a-b96e-ada88f3afc73
+https://github.com/user-attachments/assets/b80a94b1-489a-4fa0-9bd1-8a8699f34511
