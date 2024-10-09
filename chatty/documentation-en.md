@@ -952,6 +952,8 @@ The main purpose of building this project was to familiarize myself with web soc
 
 **Adding a friend (with real-time updates)**
 
-https://github.com/user-attachments/assets/eefe7f30-9631-4492-a3a7-61cdb3af861a
+https://github.com/user-attachments/assets/e09fa1ec-5668-464b-ac2f-fc7d2898d51c
 
-**When a user logs in**
+**When a user changes status**
+
+https://github.com/user-attachments/assets/bdba9b98-4796-432a-b96e-ada88f3afc73
