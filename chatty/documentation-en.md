@@ -860,4 +860,27 @@ It also emits the **message** and the **lastMessage** event.
 #### `emit("message")`
 **Where**: Server
 
-This event is emitted to the specific socket room.
+This event is emitted to the specific socket room. It sends the message, the sender id, the timestamp, chatroom id, and the sender's profile picture.
+
+```ts
+io.to(chatroomId).emit("message", message, senderId, timestamp, chatroomId, senderImage)
+```
+
+#### `on("message")`
+**Where**: Client
+
+The client receives the message (along with the relevant data). It appends the messages in a state.
+
+```ts
+const handleMessage = (message: string, senderId: string, timestamp: number, incomingChatroomId: string, senderImage: string) => {
+  const newMessage: Message = { message, senderId, timestamp, senderImage };
+
+  if (incomingChatroomId === chatId) {
+    setMessageList((prevState) => [...prevState, newMessage]);
+  }
+};
+
+socket.on("message", handleMessage)
+```
+
+Just to be sure, I added a check to see if the message was that of the current chatroom.
