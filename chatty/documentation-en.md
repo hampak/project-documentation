@@ -465,6 +465,8 @@ Real-time functionality is vital for a chatting application. Here is a list of s
 - [`on("sendMessage")`](#onsendMessage)
 - [`emit("message")`](#emitmessage)
 - [`on("message")`](#onmessage)
+- [`emit("lastMessage")`](#emitlastMessage)
+- [`on("lastMessage")`](#onlastMessage)
 
 
 #### `emit("userOnline")`
@@ -886,3 +888,39 @@ socket.on("message", handleMessage)
 ```
 
 Just to be sure, I added a check to see if the message was that of the current chatroom.
+
+#### `emit("lastMessage")`
+**Where**: Server
+
+This event is vital to show the last message sent in the client's UI. Whenever a chat message is sent in a chatroom, the message appears as the "last message" in the current user's and the participant's UI.
+
+Within the **sendMessage** event in the server, we map over the list of participants and individually emit this event.
+
+```ts
+await Promise.all(participantsSocketIds.map(async (socketId): Promise<void> => {
+  return new Promise((resolve) => {
+    io.to(socketId).emit("lastMessage", message, chatroomId)
+    resolve()
+  })
+}))
+```
+
+#### `on("lastMessage")`
+**Where**: Client
+
+The last message is received from the server and shown in the user's client.
+
+```ts
+socket.on("lastMessage", async (message, chatroomId) => {
+  if (data.id === chatroomId) {
+    setLastMesage(message)
+    if (chatId !== chatroomId) {
+      setUnreadMessages(prevCount => prevCount + 1)
+    }
+  }
+})
+```
+
+Here's the relevant client code. If `data.id` is equal to `chatroomId`, it means that the last message is the last message of that chatroom. In this case, we set it in state.
+
+Next, if the `chatId` is not equal to `chatroomId`, it means that the user is not currently in that chatroom. In that case, we also have to show an indicator (in our case, a number) to show how many messages haven't been seen yet.
