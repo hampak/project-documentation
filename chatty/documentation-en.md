@@ -2,7 +2,7 @@
 1. [Project Overview](#project-overview)
 2. [API Documentation](#api-documentation)
 3. [Web Socket Documentation](#web-socket-documentation)
-4. Features
+4. [Features](#features)
 5. Notable Bugs & Problems I encountered
 6. Learning Experience
 
@@ -939,4 +939,13 @@ socket.emit("logout", user?.id)
 #### `on("logout")`
 **Where**: Server
 
-When a user logs out, it first checks iff that logging out user has any friends. If not, it just changes the user's status to **offline**. However, if the user has friends, it goes over the same logic as [getOnlineFriend](#emitgetonlinefriend). It sends an event to the user's friends so that the friend's will see that the user's status is offline.
+When a user logs out, it first checks if the user logging out has any friends. If not, it just changes the user's status to **offline**. However, if the user has friends, it goes over the same logic as [getOnlineFriend](#emitgetonlinefriend). It sends an event to the user's friends so that the friends will see that the user's status is offline.
+
+
+# Features
+
+The main purpose of building this project was to familiarize myself with web sockets. Here are some features that utilizes web sockets.
+
+- [Real-time status updates](#real-timestatusupdates)
+
+#### `Real-time status updates`
