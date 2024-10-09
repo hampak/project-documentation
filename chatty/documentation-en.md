@@ -857,5 +857,7 @@ await redis.zadd(`messages-${chatroomId}`, timestamp, JSON.stringify({
 
 It also emits the **message** and the **lastMessage** event.
 
+#### `emit("message")`
+**Where**: Server
 
-
+This event is emitted to the specific socket room.
