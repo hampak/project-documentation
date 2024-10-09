@@ -952,6 +952,6 @@ The main purpose of building this project was to familiarize myself with web soc
 
 **Adding a friend (with real-time updates)**
 
-![chatty-adding-friend](https://github.com/user-attachments/assets/9b74304f-e2b6-484f-9008-555dbef700e7)
+https://github.com/user-attachments/assets/b6c73947-5023-4072-b3ce-babf2e83117f
 
 **When a user logs in**
