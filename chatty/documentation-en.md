@@ -946,6 +946,11 @@ When a user logs out, it first checks if the user logging out has any friends. I
 
 The main purpose of building this project was to familiarize myself with web sockets. Here are some features that utilizes web sockets.
 
-- [Real-time status updates](#real-timestatusupdates)
+- [Real-time status updates](#real-time-status-updates)
 
 #### `Real-time status updates`
+
+**Adding a friend (with real-time updates)**
+![chatty-adding-friend](https://github.com/user-attachments/assets/9b74304f-e2b6-484f-9008-555dbef700e7)
+
+**When a user logs in**
