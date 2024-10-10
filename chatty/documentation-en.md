@@ -948,7 +948,7 @@ The main purpose of building this project was to familiarize myself with web soc
 
 - [Adding a Friend](#adding-a-friend)
 - [Changing User's Status](#changing-users-status)
-
+- [Creating a Chat](#creating-a-chat)
 
 #### `Adding a Friend`
 
@@ -957,3 +957,8 @@ https://github.com/user-attachments/assets/e09fa1ec-5668-464b-ac2f-fc7d2898d51c
 #### `Changing User's Status`
 
 https://github.com/user-attachments/assets/b80a94b1-489a-4fa0-9bd1-8a8699f34511
+
+#### `Creating a Chat`
+
+https://github.com/user-attachments/assets/ffe0c01e-0ba8-4f08-bf7c-534eac7e9ff4
+
