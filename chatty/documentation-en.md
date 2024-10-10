@@ -949,7 +949,7 @@ The main purpose of building this project was to familiarize myself with web soc
 - [Adding a Friend](#adding-a-friend)
 - [Changing User's Status](#changing-users-status)
 - [Creating a Chat](#creating-a-chat)
-- [Sending a Message](#sending a message)
+- [Sending a Message](#sending-a-message)
 
 #### `Adding a Friend`
 
