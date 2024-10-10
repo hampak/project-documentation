@@ -950,6 +950,7 @@ The main purpose of building this project was to familiarize myself with web soc
 - [Changing User's Status](#changing-users-status)
 - [Creating a Chat](#creating-a-chat)
 - [Sending a Message](#sending-a-message)
+- [Number of Unread Messages](#number-of-unread-messages)
 
 #### `Adding a Friend`
 
@@ -967,3 +968,6 @@ https://github.com/user-attachments/assets/ffe0c01e-0ba8-4f08-bf7c-534eac7e9ff4
 
 https://github.com/user-attachments/assets/f3a17409-8b58-49ae-86ec-4c115ca94c34
 
+#### `Number of Unread Messages`
+
+https://github.com/user-attachments/assets/202f216a-be04-43c5-acd0-53649d168fef
