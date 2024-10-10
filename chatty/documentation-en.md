@@ -946,14 +946,14 @@ When a user logs out, it first checks if the user logging out has any friends. I
 
 The main purpose of building this project was to familiarize myself with web sockets. Here are some features that utilizes web sockets.
 
-- [Real-time status updates](#real-time-status-updates)
+- [Adding a Friend](#adding-a-friend)
+- [Changing User's Status](#changing-users-status)
 
-#### `Real-time status updates`
 
-**Adding a friend (with real-time updates)**
+#### `Adding a Friend`
 
 https://github.com/user-attachments/assets/e09fa1ec-5668-464b-ac2f-fc7d2898d51c
 
-**When a user changes status**
+#### `Changing User's Status`
 
 https://github.com/user-attachments/assets/b80a94b1-489a-4fa0-9bd1-8a8699f34511
