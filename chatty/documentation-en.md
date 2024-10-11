@@ -3,7 +3,7 @@
 2. [API Documentation](#api-documentation)
 3. [Web Socket Documentation](#web-socket-documentation)
 4. [Features](#features)
-5. Notable Bugs & Problems I encountered
+5. [Notable Bugs & Problems I encountered](#notable-bugs--problems-i-encountered)
 6. Learning Experience
 
 # Project Overview
@@ -971,3 +971,17 @@ https://github.com/user-attachments/assets/f3a17409-8b58-49ae-86ec-4c115ca94c34
 #### `Number of Unread Messages`
 
 https://github.com/user-attachments/assets/202f216a-be04-43c5-acd0-53649d168fef
+
+# Notable Bugs & Problems I encountered
+
+Here, I listed the problems and bugs that I've encountered during the building process of this application. I've also documented on how I fixed those issues.
+
+#### `Problem with sending data when changing a user's status`
+
+This was a problem when a user changes his/her online status, the entire list of that user's friend (and the friend's data such as the online status) would be sent to the user's friend (who's not friends with the user's friend). Simply put, let's say that **User A** and **User B** are friends. **User B** and **User C** are friends. However, **User A** and **User C** are **NOT** friends. In this case:
+
+1. **User B** updates online status
+2. **User A** should receive the online status of **ONLY** **User B**
+3. However, **User A** also receives the online status of **User C**
+
+Now, this was one of the most difficult issues that I faced while building this app.
