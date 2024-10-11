@@ -977,6 +977,7 @@ https://github.com/user-attachments/assets/202f216a-be04-43c5-acd0-53649d168fef
 Here, I listed the problems and bugs that I've encountered during the building process of this application. I've also documented on how I fixed those issues.
 
 - [Problem with sending data when changing a user's status](#problem-with-sending-data-when-changing-a-users-status)
+- [Redundant redis queries when sending messages](#redundant-redis-queries-when-sending-messages)
 
 #### `Problem with sending data when changing a user's status`
 
@@ -991,3 +992,7 @@ This was one of the most difficult issues I faced while building this app. It wa
 <img src="https://github.com/user-attachments/assets/d1a22c4e-4438-4674-9733-eebc5652aba5" />
 
 By implementing this logic, a user could receive the most minimum data as possible. This also reduced security risks as a user would not have access to other user's data (such as the socket id or their online status).
+
+#### `Redundant redis queries when sending messages`
+
+This was a very difficult issue I encountered. Before the refactored code, when a user sends a message, a socket event would be fired from the server where it would query redis for the chatroom members' socket id. This would happen **every single time a message was sent**. This would consequently put a lot of strain in my server and become an overhead issue. To solve this problem, I implemented the exact same logic as [above](#problem-with-sending-data-when-changing-a-users-status)
