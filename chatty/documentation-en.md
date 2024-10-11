@@ -976,12 +976,18 @@ https://github.com/user-attachments/assets/202f216a-be04-43c5-acd0-53649d168fef
 
 Here, I listed the problems and bugs that I've encountered during the building process of this application. I've also documented on how I fixed those issues.
 
+- [Problem with sending data when changing a user's status](#problem-with-sending-data-when-changing-a-users-status)
+
 #### `Problem with sending data when changing a user's status`
 
-This was a problem when a user changes his/her online status, the entire list of that user's friend (and the friend's data such as the online status) would be sent to the user's friend (who's not friends with the user's friend). Simply put, let's say that **User A** and **User B** are friends. **User B** and **User C** are friends. However, **User A** and **User C** are **NOT** friends. In this case:
+Let's say that **User A** and **User B** are friends. **User B** and **User C** are friends. However, **User A** and **User C** are **NOT** friends. In this case:
 
 1. **User B** updates online status
 2. **User A** should receive the online status of **ONLY** **User B**
 3. However, **User A** also receives the online status of **User C**
 
-Now, this was one of the most difficult issues that I faced while building this app.
+This was one of the most difficult issues I faced while building this app. It was incredibly difficult to wrap my head around how I should store and persist the online status data of friends. In the end, I came up with this process and logic:
+
+<img src="https://github.com/user-attachments/assets/d1a22c4e-4438-4674-9733-eebc5652aba5" />
+
+By implementing this logic, a user could receive the most minimum data as possible. This also reduced security risks as a user would not have access to other user's data (such as the socket id or their online status).
