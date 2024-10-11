@@ -996,3 +996,5 @@ By implementing this logic, a user could receive the most minimum data as possib
 #### `Redundant redis queries when sending messages`
 
 This was a very difficult issue I encountered. Before the refactored code, when a user sends a message, a socket event would be fired from the server where it would query redis for the chatroom members' socket id. This would happen **every single time a message was sent**. This would consequently put a lot of strain in my server and become an overhead issue. To solve this problem, I implemented the exact same logic as [above](#problem-with-sending-data-when-changing-a-users-status)
+
+When storing the friend's online status, I would also store the friend's socket id in the client. This allowed the client to simply send a socket event **containing not only the message but also the socket id of the chatroom participants**. This way, I was able to entirely skip a redis query. This boosted the app's performance where receiving the "last message" became faster.
