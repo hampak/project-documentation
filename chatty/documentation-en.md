@@ -4,7 +4,7 @@
 3. [Web Socket Documentation](#web-socket-documentation)
 4. [Features](#features)
 5. [Notable Bugs & Problems I encountered](#notable-bugs--problems-i-encountered)
-6. Learning Experience
+6. [Learning Experience](#learning-experience)
 
 # Project Overview
 Chatty is a chatting application where users can communicate with each other. The idea of real-time communication has always intrigued me and I was really interested in building a project like this. I learned a lot of technologies while building this project such as **redis** and **web sockets**.
@@ -998,3 +998,7 @@ By implementing this logic, a user could receive the most minimum data as possib
 This was a very difficult issue I encountered. Before the refactored code, when a user sends a message, a socket event would be fired from the server where it would query redis for the chatroom members' socket id. This would happen **every single time a message was sent**. This would consequently put a lot of strain in my server and become an overhead issue. To solve this problem, I implemented the exact same logic as [above](#problem-with-sending-data-when-changing-a-users-status)
 
 When storing the friend's online status, I would also store the friend's socket id in the client. This allowed the client to simply send a socket event **containing not only the message but also the socket id of the chatroom participants**. This way, I was able to entirely skip a redis query. This boosted the app's performance where receiving the "last message" became faster.
+
+# Learning Experience
+
+This project was overall a very good experience to dive deeply into real-time communication using web sockets. The idea of real-time updates always fascinated me when I started to learn web development. Whenever I used chatting applications such as Discord or KakaoTalk (Korean version of WhatsApp), I've always wanted to build a simple chatting application and it feels very rewarding.
