@@ -56,7 +56,7 @@ Chatty는 밑에 기재된 스택으로 개발되었습니다:
 #### `/api/auth/google`
 **Method**: GET
 
-유저가 "Start with Google" 버튼을 클릭했을 때 요청되는 API입니다. 해당 API가 호출되면, **google-auth-library** 패키지를 활용하여 **redirect url**를 생성하게 됩니다.
+유저가 "Start with Google" 버튼을 클릭했을 때 요청되는 API입니다. 해당 API가 호출되면, **google-auth-library** 패키지를 활용하여 **redirect url**를 생성하게 됩니다.
 
 ```ts
 const authUrl = oauth2Client.generateAuthUrl({
