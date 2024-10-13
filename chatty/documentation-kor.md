@@ -81,14 +81,14 @@ if (token) {
         if (user) {
           return res.redirect(`${CLIENT_URL}/dashboard`)
         } else {
-          // generate authURL and redirect user to the Google login page
+          // authUrl을 생성하고 구글 계정 선택 화면으로 유저를 이동시킵니다
         }
       })
     }
   } catch (error) {
-    // if any error happens, generate authURL and redirect the user to the Google login page
+    // 에러 발생 시, authUrl을 생성하고 구글 계정 선택 화면으로 이동시킵니다
   }
 } else {
-  // generate authURL and redirect the user to the Google login page
+  // authUrl을 생성하고 구글 계정 선택 화면으로 이동시킵니다
 }
 ```
