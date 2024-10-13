@@ -92,3 +92,31 @@ if (token) {
   // authUrl을 생성하고 구글 계정 선택 화면으로 이동시킵니다
 }
 ```
+
+#### `/api/auth/google/callback`
+**Method**: GET
+
+유저가 사용할 구글 계정을 선택하면, 해당 API가 호출됩니다. 해당 API에는 구글로부터 유저별로 부여된 고유의 id인 **sub**, 유저의 이름과 프로파일 이미지 등을 추출할 수 있는 중요한 로직을 코딩했습니다.
+
+해당 API에서 가장 중요한 로직 중 하나는 유저가 새롭게 가입하는 유저인지 아닌지 확인하는 겁니다. 이것은 위에서 언급된 **sub** 값으로 이미 저장된 유저가 있는지 확인하는 걸로 처리가 됩니다. 만약 데이터베이스에 유저가 존재한다면 새롭게 추가하지 않으며 존재하지 않다면 새롭게 추가합니다.
+
+이렇게 모든 로직을 통과한 후, 유저의 데이터는 **user**라는 쿠키로 브라우저에 저장됩니다.
+
+```ts
+const token = jwt.sign({
+  user_id,
+  name,
+  picture
+},
+  JWT_SECRET!,
+  { expiresIn: "60m" }
+)
+
+res.cookie("user", token, {
+  httpOnly: true,
+  maxAge: 60 * 60 * 1000,
+  // 다른 옵션 추가
+})
+
+res.redirect(`${CLIENT_URL}/dashboard`)
+```
