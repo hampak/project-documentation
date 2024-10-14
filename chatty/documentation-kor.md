@@ -215,3 +215,34 @@ try {
 
 추가적으로, 토큰에 이상이 있다면 서버는 **401** 에러코드를 리턴합니다.
 
+### `/api/friend`
+- [`/api/friend`](#apifriend)
+- [`/api/friend/add-friend`](#apifriendadd-friend)
+- `/api/friend/delete-friend` **빌드 전 단계**
+
+#### `/api/friend`
+**Method**: GET
+
+해당 API는 현재 로그인된 유저의 친구를 불러옵니다. 클라이언트에서 **userId** 값을 받은 후, 데이터베이스에서 해당 아이디를 가진 유저의 친구를 불러옵니다. 만약, **userId**가 존재하지 않는다면 **401** 에러코드를 리턴합니다.
+
+만약 있다면, 해당 데이터를 리턴합니다.
+
+- _id - MongoDB가 생성한 유저마다 부여되는 고유의 아이디
+- name - 친구의 이름
+- image - 친구의 프로파일 사진
+- userTag - 친구의 유저테그
+
+이후, 이 값은 **friends**라는 어레이에 저장된 후, 클라리언트로 보냅니다.
+
+```ts
+const friendsList = await User.find({
+  _id: { $in: user.friends }
+}).select("_id name image userTag")
+
+const friends = friendsList.map(friend => ({
+  userId: friend._id.toString(),
+  name: friend.name,
+  image: friend.image,
+  userTag: friend.userTag
+}))
+```
