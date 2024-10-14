@@ -134,3 +134,44 @@ res.redirect(`${CLIENT_URL}/dashboard`)
 })
 ```
 
+#### `/api/auth/github/callback`
+**Method**: GET
+
+위 API에서 깃허브 redirect URL로 리다이랙팅된 후, 유저는 이 주소로 이동하게 됩니다. **GITHUB_CLIENT_ID**와 **GITHUB_CLIENT_SECRET**를 이용하여 access token을 받게 됩니다. 이 토큰을 통해 유저의 깃허브 정보 - 프로필 사진, 이름, 그리고 아이디를 얻습니다. **id**는 MongoDB에 저장됩니다.
+
+```ts
+const { code } = req.query;
+
+if (!code) {
+  return res.status(400).send("No code provided")
+}
+
+try {
+  const tokenResponse = await axios.post(
+    "https://github.com/login/oauth/access_token",
+    {
+      client_id: GITHUB_CLIENT_ID,
+      client_secret: GITHUB_CLIENT_SECRET,
+      code
+    },
+    {
+      headers: {
+        accept: "application/json"
+      }
+    }
+  )
+
+  const accessToken = tokenResponse.data.access_token
+
+  const userResponse = await axios.get("https://api.github.com/user", {
+    headers: {
+      Authorization: `Bearer ${accessToken}`
+    }
+  })
+
+  const { avatar_url, name, id } = userResponse.data
+  ...
+  } catch ...
+```
+
+이후 코드는 위의 `/api/auth/google/callback` API 로직과 비슷하게 흘러갑니다.
