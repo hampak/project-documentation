@@ -120,3 +120,17 @@ res.cookie("user", token, {
 
 res.redirect(`${CLIENT_URL}/dashboard`)
 ```
+
+#### `/api/auth/github`
+**Method**: GET
+
+해당 API는 유저가 "Start with Github" 버튼을 클릭했을 때 요청됩니다. 이 주소는 깃허브 redirect URL을 돌려줍니다.
+
+```ts
+.get("/github", async (req, res) => {
+  const redirectUrl = `https://github.com/login/oauth/authorize?client_id=${GITHUB_CLIENT_ID}&redirect_uri=http://localhost:8000/api/auth/github/callback&scope=user`
+
+  res.redirect(redirectUrl)
+})
+```
+
