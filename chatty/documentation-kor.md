@@ -175,3 +175,19 @@ try {
 ```
 
 이후 코드는 위의 `/api/auth/google/callback` API 로직과 비슷하게 흘러갑니다.
+
+#### `/api/auth/logout`
+**Method**: GET
+
+해당 API는 유저를 로그아웃 시킵니다. 세션 정보가 담겨있는 쿠키를 브라우저와 redis 데이터베이스에서 삭제합니다. 이후, 유저는 대쉬보드 페이지로 이동됩니다.
+
+```ts
+.get("/logout", async (req, res) => {
+    const token = await req.cookies.user
+    const decoded = jwt.verify(token, JWT_SECRET!) as JwtPayload
+
+    res.clearCookie("user")
+    await redis.del(`sessionToken-${decoded.user_id}`)
+    res.redirect(`${CLIENT_URL}`)
+  })
+```
