@@ -246,3 +246,18 @@ const friends = friendsList.map(friend => ({
   userTag: friend.userTag
 }))
 ```
+
+#### `/api/friend/add-friend`
+**Method**: POST
+
+해당 API는 친구추가를 담당합니다. 클라이언트로부터 **friendUserTag**와 **userId** 값을 받습니다. 먼저, 추가하려는 친구와 이미 친구인지 확이합니다. 이미 친구이면 클라이언트에 에러메세지를 리턴합니다. 또한, 유저가 자기자신을 친구로 추가하려는지 확인합니다.
+
+이러한 체크가 통과된다면 해당 유저의 "friends" 필드에 추가하려는 친구의 아이디를 넣고 **반대로 똑같이 친구의 "friends" 필드에 현재 유저를 추가합니다.**
+
+Redis에서도 친구 목록을 업데이트 합니다. 웹 소켓 서버가 추후에 빠르게 데이터를 쿼리하기 위함입니다.
+
+친구가 성공적으로 데이터베이스에 추가되었다면 클라이언트로 해당 데이터를 리턴합니다.
+
+- friendUserTag - 추가된 친구의 유저테그
+- friendName - 추가된 친구의 이름
+- friendId - 추가된 친구의 아이디
