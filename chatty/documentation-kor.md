@@ -261,3 +261,35 @@ Redis에서도 친구 목록을 업데이트 합니다. 웹 소켓 서버가 추
 - friendUserTag - 추가된 친구의 유저테그
 - friendName - 추가된 친구의 이름
 - friendId - 추가된 친구의 아이디
+
+### `/api/chat`
+- [`/api/chat/chat-list`](#apichatchat-list)
+- [`/api/chat/create-chat`](#apichatcreate-chat)
+- [`/api/chat/chat-info`](#apichatchat-info)
+
+#### `api/chat/chat-list`
+**Method**: GET
+
+해당 API는 로그인된 유저가 참여하고 있는 챗 목록을 불러옵니다. 클라이언트로부터 받은 "userId"가 유효한지 확인 한 후, API는 필요한 데이터를 데이터베이스로부터 쿼리합니다.
+
+```ts
+const data = await ChatRoom.find({
+  participants: { $elemMatch: { participantId: userId } }
+})
+```
+
+데이터는 매핑이 되어서 **chatRooms**라는 어레이로 반환되고, 클라이언트로 리턴됩니다.
+
+중요한 로직은 `.map()` 내에서 처리됩니다. 먼저, 각 채팅방마다 마지막으로 보내진 메세지를 추출합니다 (해당 메세지는 클라이언트에 사용됩니다). Redis 내에서 해당 데이터를 쿼리합니다.
+
+```ts
+const lastMessageRaw = await redis.zrange(`messages-${room._id}`, -1, -1)
+lastMessage = lastMessageRaw[0] ? JSON.parse(lastMessageRaw[0]) : ""
+```
+
+이후, 채팅방 참여자들의 이름이 추출됩니다. 현재 로그인된 유저의 이름은 클라리언트로 보내지 않습니다.
+
+```ts
+const allParticipants = room.room_title.split("|").map(p => p.trim())
+const friendName = allParticipants.find(p => p !== name)
+```
