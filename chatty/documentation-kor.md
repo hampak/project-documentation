@@ -293,3 +293,49 @@ lastMessage = lastMessageRaw[0] ? JSON.parse(lastMessageRaw[0]) : ""
 const allParticipants = room.room_title.split("|").map(p => p.trim())
 const friendName = allParticipants.find(p => p !== name)
 ```
+
+이후, "last seen" 값도 추출합니다. 이것은 redis에서 쿼리합니다.
+
+```ts
+const lastSeenTimestamp = await redis.get(`last_seen-${userId}-${chatRoomId}`)
+```
+
+해당 코드는 **lastSeenTimestamp** 값이 존재하는지 확인합니다. 존재하지 않는다면 유저가 채팅방에 접속을 한 적이 없다는 겁니다. 이러기 위해서는 유저의 친구가 유저를 채팅방에 추가하고 메세지를 보낼 때 유저가 로그인하지 않았을 때입니다. 이런 경우엔 **unreadMessagesCount** 값을 채팅방 **전체** 메세지의 수로 설정합니다 (가장 처음으로 보낸 것 부터 마지막까지).
+
+```ts
+let unreadMessagesCount = 0;
+
+if (!lastSeenTimestamp) {
+  const allMessages = await redis.zrange(`messages-${chatRoomId}`, 0, -1);
+  const unreadMessages = allMessages.filter(message => {
+    const parsedMessage = JSON.parse(message)
+    return parsedMessage.senderId !== currentUserId
+  })
+  unreadMessagesCount = unreadMessages.length;
+} else ...
+```
+
+**unreadMessagesCount** 값을 추출하면서 현재 로그인된 유저가 보낸 메세지는 제외시킵니다. 유저가 채팅방에 접속을 한 적이 없어서 이럴 필요는 없겠지만 혹시나 모를 상황에 대비해 추가했습니다.
+
+만약 **lastSeenTimestamp** 값이 있다면 유저가 톡방에 최소 한 번은 접속을 했다는 겁니다. 이런 경우, 유저가 마지막으로 접속했던 시간 **이후**로 저장된 메세지를 불러옵니다. 메세지가 이미 redis에 순서대로 저장이 되었기 때문에 **score**값을 이용해서 쉽게 불러올 수 있습니다.
+
+```ts
+else {
+  // 유저가 마지막으로 접속했던 시간 이후로 보내진 메세지를 불러옵니다.
+  const messagesAfterLastSeen = await redis.zrangebyscore(`messages-${chatRoomId}`, lastSeenTimestamp, "+inf")
+  const unreadMessages = messagesAfterLastSeen.filter(message => {
+    const parsedMessage = JSON.parse(message);
+    return parsedMessage.senderId !== currentUserId
+  })
+  unreadMessagesCount = unreadMessages.length
+}
+```
+
+이 모든 것을 마치고 난 후, 클라이언트에게 다음과 같은 데이터를 반환합니다.
+
+- id - 채팅방 고유의 아이디
+- createdAt - 채팅방이 생성된 날짜와 시간
+- title - 채팅방의 "제목" 혹은 "이름". **friendName**값으로 설정됩니다.
+- participants - 현재 채팅방에 참여하고 있는 유저들의 아이디와 프로파일 사진이 담겨있습니다.
+- lastMessage - 클라이언트의 UI에 보여줄 마지막 메세지 값입니다.
+- unreadMessagesCount - 현재 접속한 유저가 확인하지 않은 메세지의 개수입니다.
