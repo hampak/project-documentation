@@ -395,6 +395,45 @@ const chatRoom = new ChatRoom({
 await chatRoom.save()
 ```
 
+#### `api/chat/chat-info`
+**Method**: GET
+
+해당 API는 유저끼리 주고받은 메세지를 포함한 중요한 데이터를 반환합니다. 유저가 채팅방에 클릭해서 접속하면, 해당 API를 호출하게 됩니다.
+
+유저가 자신이 소속되어 있는 채팅방에 들어가지 못하게 하기 위해 해당 코드를 추가했습니다.
+
+```ts
+const isParticipant = chatRoomInfo.participants.some(participant =>
+  participant.participantId.toString() === user._id.toString()
+)
+
+if (!isParticipant) {
+  return res.status(403).json({
+    message: "You're not part of this chat :("
+  })
+}
+```
+
+체크 통과 후, 메세지는 redis로부터 쿼리되며 **messages**라는 배열변수에 할당됩니다.
+
+```ts
+const rawMessages = await redis.zrange(`messages-${chatId}`, 0, -1, "WITHSCORES")
+const messages = []
+for (let i = 0; i < rawMessages.length; i += 2) {
+  const messageJson = rawMessages[i]
+  const timestamp = rawMessages[i + 1]
+  if (messageJson && timestamp) {
+    const message = JSON.parse(messageJson!)
+    message.timeStamp = parseInt(timestamp!, 10)
+    messages.push(message)
+  }
+}
+```
+
+가장 중요한 데이터 중 하나가 메세지입니다.
+
+각각의 메세지는 다음과 같은 정보를 포함하고 있습니다. 실제 메세지, 보낸 유저의 아이디, 발송 날짜 및 시간, 그리고 보낸 유저의 프로파일 사진입니다.
+
 
 
 
