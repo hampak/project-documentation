@@ -339,3 +339,62 @@ else {
 - participants - 현재 채팅방에 참여하고 있는 유저들의 아이디와 프로파일 사진이 담겨있습니다.
 - lastMessage - 클라이언트의 UI에 보여줄 마지막 메세지 값입니다.
 - unreadMessagesCount - 현재 접속한 유저가 확인하지 않은 메세지의 개수입니다.
+
+#### `api/chat/create-chat`
+**Method**: POST
+
+해당 API는 채팅방을 생성합니다. 서버는 클라이언트로부터 참여자들의 데이터를 받고 채팅방을 만듭니다.
+
+코드는 클라이언트로부터 유효한 데이터를 받았는지 확인합니다 (예를 들어 현재 유저를 포함한 두 명 이상의 유저의 정보가 전달 되었는지 등). 이후, 코드는 1대1 채팅을 생성해야 하는지 단체채팅을 생성해야 하는지 판단합니다. 전자일 경우, (이미 1대1 채팅방이 존재하는지 확인 한 후) 채팅방을 생성합니다.
+
+```ts
+const chatroomAlreadyExists = await ChatRoom.findOne({
+  participants: {
+    $all: [
+      { $elemMatch: { participantId: friendData[0].friendId } },
+      { $elemMatch: { participantId: currentUserId } }
+    ]
+  },
+  $expr: { $eq: [{ $size: "$participants" }, 2] }
+})
+
+if (chatroomAlreadyExists) {
+  return res.redirect(`CLIENT_URL/dashboard/chat/${chatroomAlreadyExists._id}`)
+}
+
+const chatRoom = new ChatRoom({
+  room_title: `${currentUserName}, ${friendData[0].friendName}`,
+  participants: [
+    { participantId: currentUserId, participantPicture: currentUserPicture },
+    { participantId: friendData[0].friendId, participantPicture: friendData[0].friendPicture }
+  ]
+})
+
+await chatRoom.save()
+```
+
+단체 채팅방을 생성하려고 하면 이미 같은 멤버들로 구성된 채팅방이 존재하는지 확인하지 **않습니다**. 이것은 일부러 이렇게 로직을 해놓은 겁니다. 예를 들어 User A, User B, 그리고 User C가 된 채팅방이 있는데 이 멤버들로 또 만드려고 하면 만들 수 있습니다.
+
+```ts
+const userNames = friendData.map((friend: Friend) => friend.friendName)
+const roomTitle = `${currentUserName}, ${userNames.join(", ")}`
+
+const participants = [
+  { participantId: currentUserId, participantPicture: currentUserPicture },
+  ...friendData.map((friend: Friend) => ({
+    participantId: friend.friendId,
+    participantPicture: friend.friendPicture
+  }))
+]
+
+const chatRoom = new ChatRoom({
+  room_title: roomTitle,
+  participants: participants,
+})
+
+await chatRoom.save()
+```
+
+
+
+
