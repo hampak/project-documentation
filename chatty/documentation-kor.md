@@ -434,6 +434,45 @@ for (let i = 0; i < rawMessages.length; i += 2) {
 
 각각의 메세지는 다음과 같은 정보를 포함하고 있습니다. 실제 메세지, 보낸 유저의 아이디, 발송 날짜 및 시간, 그리고 보낸 유저의 프로파일 사진입니다.
 
+# Web Socket Documentation
+채팅 어플에서 가장 중요한 기능은 실시간 통신(커뮤니케이션)입니다. 그렇기 때문에 이번 프로젝트를 하면서 웹 소켓과 관련된 코드를 많이 짰습니다. 다음은 클라이언트와 서버 사이의 웹 소켓 로직에 대한 문서입니다.
 
+- [`emit("userOnline")`](#emituseronline)
+- [`on("userOnline")`](#onuseronline)
+- [`emit("retrieveCurrentUser")`](#emitretrieveCurrentUser)
+- [`on("retrieveCurrentUser")`](#onretrieveCurrentUser)
+- [`emit("getOnlineFriend")`](#emitgetOnlineFriend)
+- [`on("getOnlineFriend")`](#ongetOnlineFriend)
+- [`emit("retrieveOnlineFriends")`](#emitretrieveOnlineFriends)
+- [`on("retrieveOnlineFriends")`](#onretrieveOnlineFriends)
+- [`emit("changeStatus")`](#emitchangeStatus)
+- [`on("changeStatus")`](#onchangeStatus)
+- [`emit("addFriend")`](#emitaddFriend)
+- [`on("addFriend")`](#onaddFriend)
+- [`emit("addedAsFriend")`](#emitaddedAsFriend)
+- [`on("addedAsFriend")`](#onaddedAsFriend)
+- [`emit("addedInChatroom")`](#emitaddedInChatroom)
+- [`on("addedInChatroom")`](#onaddedInChatroom)
+- [`emit("connectToRoom")`](#emitconnectToRoom)
+- [`on("connectToRoom")`](#onconnectToRoom)
+- [`emit("joinedChatroom")`](#emitjoinedChatroom)
+- [`on("joinedChatroom")`](#onjoinedChatroom)
+- [`emit("leaveChatroom")`](#emitleaveChatroom)
+- [`on("leaveChatroom")`](#onleaveChatroom)
+- [`emit("sendMessage")`](#emitsendMessage)
+- [`on("sendMessage")`](#onsendMessage)
+- [`emit("message")`](#emitmessage)
+- [`on("message")`](#onmessage)
+- [`emit("lastMessage")`](#emitlastMessage)
+- [`on("lastMessage")`](#onlastMessage)
+- [`emit("logout")`](#emitlogout)
+- [`on("logout")`](#onlogout)
 
+#### `emit("userOnline")`
+**Where**: Client
 
+유저가 로그인을 하거나 페이지를 새로고침 했을 때 해당 이벤트가 호출되어 현재 유저의 아이디를 웹 소켓 서버로 보냅니다.
+
+```ts
+socket.emit("userOnline", user.id)
+```
