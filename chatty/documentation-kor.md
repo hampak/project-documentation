@@ -476,3 +476,68 @@ for (let i = 0; i < rawMessages.length; i += 2) {
 ```ts
 socket.emit("userOnline", user.id)
 ```
+
+#### `on("userOnline")`
+**Where**: Server
+
+클라이언트로부터 해당 이벤트를 받습니다. Chatty에서 가장 중요한 로직 중 하나가 해당 소켓 로직에 포함되어 있습니다. 한 유저의 접속 상태(online status)를 다른 유저들과 공유하는데 필요하기 때문입니다. 접속 상태는 다음 셋 중 하나입니다 - online | away | offline.
+
+먼저, redis로부터 현재 유저의 접속 상태를 쿼리합니다.
+
+```ts
+const status = await redis.hget(`user:${userId}`, "status")
+```
+
+리턴값이 "online" || null 인지 "away" 인지 확인합니다. 전자일 경우, 유저의 상태를 "online"으로 설정합니다 (null인 경우를 포함한 이유는 혹시나 모를 상황에 대비해서 입니다. null인 경우는 유저가 처음으로 회원가입을 하였을 때 적용됩니다)
+
+이후, 유저는 redis로부터 유저의 친구 데이터를 불러옵니다. 친구가 없다면 소켓 서버는 **현재 유저의 접속 상태만** 클라이언트로 반환합니다. 이것은 UI에 표시됩니다.
+
+```ts
+const friends: string[] = await redis.smembers(`friends-${userId}`)
+
+const currentUserStatus = "online"
+
+if (friends.length === 0) {
+  return io.to(socket.id).emit("retrieveCurrentUser", socket.id, currentUserStatus)
+}
+```
+
+친구가 한 명 이상일 때, 친구(들)에게 현재 유저의 접속 상태를 보냅니다. 이 데이터는 친구의 클라이언트에 state에 저장됩니다.
+
+```ts
+const friendsSocketIdsPromise: Promise<string | null>[] = friends.map(async (friendId) => {
+  return await redis.hget(`user:${friendId}`, "socketId")
+})
+
+const friendDataPromises = friends.map(friendId => {
+  return new Promise<[string | null, string | null]>((resolve) => {
+    redis.hmget(`user:${friendId}`, "socketId", "status", (err, values) => {
+      resolve(values as [string | null, string | null]);
+    })
+  })
+})
+
+const friendData: [string | null, string | null][] = await Promise.all(friendDataPromises)
+const friendSocketId: (string | null)[] = await Promise.all(friendsSocketIdsPromise)
+
+const filteredOnlineFriends: Record<string, { status: string | null; socketId: string | null }> = friendData.reduce((result, [socketId, status], index) => {
+  const friendId = friends[index]
+  if (status && friendId) {
+    result[friendId] = { status, socketId };
+  }
+  return result
+}, {} as Record<string, { status: string | null; socketId: string | null }>);
+
+io.to(socket.id).emit("retrieveOnlineFriends", filteredOnlineFriends)
+
+const validFriendSocketIds = friendSocketId.filter(id => id !== null && id !== undefined);
+
+return validFriendSocketIds.forEach(async id => {
+  // 현재 유저의 아이디와 소켓 아이디를 친구(들)에게 보냅니다. 각 친구들의 클라이언트에 이 데이터가 저장됩니다.
+  io.to(id).emit("getOnlineFriend", currentUserId, socket.id, status)
+})
+```
+
+위 코드에서 볼 수 있듯이, 친구들의 소켓 아이디와 친구들의 접속 상태도 추출합니다. 이 데이터는 현재 유저에게 `retrieveOnlineFriends`이벤트로 클라이언트에 보냅니다. 이후, 현재 유저의 접속 상태가 친구들에게 보내집니다.
+
+유저의 접속 상태가 "away"일 때도 이와 똑같은 로직이 적용됩니다.
