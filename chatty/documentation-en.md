@@ -789,7 +789,7 @@ const timestamp = Date.now()
 await socket.join(chatroomId);
 await redis.set(`last_seen-${userId}-${chatroomId}`, timestamp)
 
-io.to(chatroomId).emit("joined-chatroom")
+io.to(chatroomId).emit("joinedChatroom")
 ```
 
 #### `emit("joinedChatroom")`
