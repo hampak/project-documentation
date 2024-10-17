@@ -570,4 +570,116 @@ socket.on("retrieveCurrentUser", async (currentUserSocketId: string, currentUser
 
 이 이벤트는 서버에서 내보냅니다. 유저의 친구들에게 현재 유저의 접속 상태를 보내기 때문에 가장 중요한 소켓 이벤트 중 하나입니다. 현재 유저의 친구들의 소켓 아이디를 쿼리한 후 각각 현재 유저의 아이디, 접속 상태, 그리고 소켓 아이디를 내보냅니다.
 
+```ts
+return validFriendSocketIds.forEach(async id => {
+  // 유저의 아이디, 소켓 아이디, 그리고 접속 상태 값을 친구들에게 보내면 친구들 클라이언트의 state에 저장됩니다.
+  io.to(id).emit("getOnlineFriend", currentUserId, socket.id, status)
+})
+```
+
 **더 자세한 설명은 [위](#onuseronline)에서 확인하실 수 있습니다**
+
+#### `on("getOnlineFriend")`
+**Where**: Client
+
+서버로부터 **getOnlineFriend** 이벤트를 받은 후, 클라이언트의 state에 저장됩니다. State에 존재하지 않는다면 새롭게 추가하고 이미 존재하면 값을 업데이트합니다.
+
+> **이 이벤트는 유저가 로그인 한 후의 상태에서 받을 수 있습니다. 유저가 로그인 하거나 페이지 새로고침을 한다면 유저 친구들의 접속 상태 데이터 가장 최신 값을 받습니다. 하지만, 유저가 로그인 하거나 새로고침한 이후에는 **getOnlineFriend** 이벤트가 트리거됩니다. 유저가 로그인 하거나 새로고침을 한다면 [retrieveOnlineFriends](#emitretrieveonlinefriends)이 트리거됩니다.**
+
+```ts
+socket.on("getOnlineFriend", async (updatedFriendId: string, updatedFriendSocketId: string, updatedFriendStatus: "online" | "away") => {
+
+  setOnlineFriends(prevOnlineFriends => {
+    return {
+      ...prevOnlineFriends,
+      [updatedFriendId]: {
+        status: updatedFriendStatus,
+        socketId: updatedFriendSocketId
+      }
+    }
+  })
+})
+```
+
+#### `emit("retrieveOnlineFriends")`
+**Where**: Server
+
+유저가 페이지를 새로고침 하거나 로그인을 하면 이 이벤트가 호출되어 클라이언트로 내보내집니다. 유저 친구들의 가장 최신 접속 상태 데이터를 클라이언트로 보냅니다.
+
+또한, 이 이벤트가 트리거 되기 위해서는 친구가 한 명 이상이어야 합니다.
+
+```ts
+const filteredOnlineFriends: Record<string, { status: string | null; socketId: string | null }> = friendData.reduce((result, [socketId, status], index) => {
+  const friendId = friends[index]
+  if (status && friendId) {
+    result[friendId] = { status, socketId };
+  }
+  return result
+}, {} as Record<string, { status: string | null; socketId: string | null }>);
+
+io.to(socket.id).emit("retrieveOnlineFriends", filteredOnlineFriends)
+```
+
+#### `on("retrieveOnlineFriends")`
+**Where**: Client
+
+유저가 로그인을 하거나 페이지 새로고침을 한다면 (그리고 친구가 한 명 이상이라면), 이 이벤트를 서버로부터 ㅏㅂㄷ습니다. 데이터는 react state에 저장됩니다.
+
+> 유저가 로그인 한 **후**, 혹은 새로고침 한 **후**에는 [getOnlineFriend](#emitgetonlinefriend) 이벤트를 트리거합니다.
+
+```ts
+socket.on("retrieveOnlineFriends", async (data) => {
+  setOnlineFriends(data)
+})
+```
+
+#### `emit("changeStatus")`
+**Where**: Client
+
+유저가 자신의 접속 상태를 변경할 때 트리거 됩니다. 해당 이벤트는 유저의 아이디와 상태를 소켓 서버로 보냅니다.
+
+```ts
+const onSubmit = async (values: { status: "online" | "away" }) => {
+    setIsLoading(true)
+    socket.emit("changeStatus", values.status, user?.id)
+    setTimeout(() => {
+      setOpen(false)
+      setIsLoading(false)
+    }, 1000)
+  }
+```
+
+#### `on("changeStatus")`
+**Where**: Server
+
+클라이언트로부터 **changeStatus** 이벤트를 받습니다. 자기 자신에게 변경된 접속 상태를 보낼 뿐만 아니라 친구들에게도 보냅니다.
+
+해당 이벤트 내에서는 redis에 접속 상태 값을 업데이트 합니다. 이후, 유저가 친구가 있는지 없는지 확인 합니다. 없다면 현재 유저에게만 자신의 업데이트된 접속 상태를 보냅니다.
+
+```ts
+await redis.hset(`user:${userId}`, "status", status)
+
+const friends: string[] = await redis.smembers(`friends-${userId}`)
+
+if (friends.length === 0) {
+  return io.to(socket.id).emit("retrieveCurrentUser", socket.id, status)
+}
+```
+
+나머지 로직은 위와 비슷한 흐름으로 진행됩니다. 친구들의 소켓 아이디를 쿼리한 후, 친구들 각각에게 현재 유저의 변경된 접속 상태를 보냅니다.
+
+```ts
+const friendsSocketIdsPromise: Promise<string | null>[] = friends.map(async (friendId) => {
+  return await redis.hget(`user:${friendId}`, "socketId")
+})
+
+const friendSocketId: (string | null)[] = await Promise.all(friendsSocketIdsPromise)
+
+const validSocketIds = friendSocketId.filter(id => id !== null && id !== undefined);
+
+validSocketIds.push(socket.id)
+
+validSocketIds.forEach(id => {
+  io.to(id).emit("getOnlineFriend", currentUserId, socket.id, status)
+})
+```
