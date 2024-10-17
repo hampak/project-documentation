@@ -683,3 +683,87 @@ validSocketIds.forEach(id => {
   io.to(id).emit("getOnlineFriend", currentUserId, socket.id, status)
 })
 ```
+
+#### `emit("addFriend")`
+**Where**: Client
+
+유저가 친구를 추가할 때 트리거되는 이벤트입니다. 이 이벤트의 핵심 기능은 친구의 친구 목록을 업데이트 하는 것입니다. 친구가 해당 이벤트를 받으면 친구 목록이 invalidate됩니다.
+
+```ts
+socket.emit("addFriend", data.friendId, user?.id, currentStatus?.socketId, currentStatus?.status)
+```
+
+#### `on("addFriend")`
+**Where**: Server
+
+**addFriend** 이벤트를 클라이언트로부터 받습니다. 추가되는 친구의 접속 상태와 소켓 아이디를 redis에서 쿼리합니다. 소켓 아이디가 존재하는지 안 하는지 확인합니다. 존재하지 않는다면 친구가 접속한 상태가 아니라는 것이기 때문에 친구에게 해당 이벤트를 내보내지 않아도 됩니다. 하지만 접속 상태 값이 존재한다면 **getOnlineFriend** 이벤트를 친구에게 내보냅니다. 이를 통해 친구 UI에서 현재 유저의 프로파일 사진과 더불어 접속 상태를 바로 업데이트 받을 수 있습니다. 이 뿐만 아니라 **addedAsFriend**라는 이벤트도 내보내 실제 query invalidation도 처리합니다.
+
+```ts
+socket.on("addFriend", async (friendId: string, userId: string, socketId: string, status: "online" | "away") => {
+
+  const addedFriend = await redis.hmget(`user:${friendId}`, "socketId", "status")
+
+  const friendSocketId = addedFriend[0]
+  const friendStatus = addedFriend[1]
+
+  // if the friend isn't logged in (or not online on our app)
+  if (!friendSocketId) return
+
+  io.to(socket.id).emit("getOnlineFriend", friendId, friendSocketId, friendStatus)
+  io.to(friendSocketId).emit("getOnlineFriend", userId, socketId, status)
+  io.to(friendSocketId).emit("addedAsFriend")
+})
+```
+
+#### `emit("addedAsFriend")`
+**Where**: Server
+
+위에서 언급된 것 처럼, 친구에게 해당 이벤트가 보내집니다. 이후, 친구의 친구 목록이 query invalidation됩니다.
+
+```ts
+io.to(friendSocketId).emit("addedAsFriend")
+```
+
+#### `on("addedAsFriend")`
+**Where**: Client
+
+클라이언트의 친구 목록이 갱신됩니다.
+
+```ts
+socket.on("addedAsFriend", async () => {
+  await queryClient.invalidateQueries({ queryKey: ["friend_list", userId] })
+})
+```
+
+#### `emit("addedInChatroom")`
+**Where**: Client
+
+유저가 채팅방을 생성하면 해당 이벤트가 클라이언트에서 트리거 됩니다. 이 이벤트의 주 역할은 채팅방 참여자들의 UI를 업데이트 하는 겁니다 (위의 친구 목록이 업데이트되는 것과 똑같습니다).
+
+```ts
+socket.emit("addedInChatroom", user?.id, friendIds, data.chatroomId, onlineFriends)
+```
+
+여기서 중요한 점은 채팅방에 추가된 친구들의 소켓 아이디를 담고 있는 **onlineFriends** 값을 소켓 서버로 보내야한다는 점 입니다. 이 소켓 아이디를 활용하여 친구의 UI를 업데이트 하기 때문입니다.
+
+#### `on("addedInChatroom")`
+**Where**: Server
+
+채팅방 참여자들의 소켓 아이디만 남도록 필터링 한 후, 각각에게 **addedInChatroom**이벤트를 쏩니다.
+
+```ts
+friendSocketIds.forEach(socketId => {
+  return io.to(socketId).emit("addedInChatroom")
+})
+```
+
+**Where**: Client
+
+서버로부터 받으면 친구의 채팅방 목록을 갱신합니다.
+
+```ts
+socket.on("addedInChatroom", async () => {
+  await queryClient.invalidateQueries({ queryKey: ["chat_list", user?.id] })
+})
+```
+
