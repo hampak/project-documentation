@@ -767,3 +767,173 @@ socket.on("addedInChatroom", async () => {
 })
 ```
 
+#### `emit("connectToRoom")`
+**Where**: Client
+
+유저가 채팅방에 접속하면 해당 이벤트가 클라이언트에서 트리거 됩니다. 소켓 서버로 **chatroomId**와 유저의 아이디를 보냅니다.
+
+```ts
+socket.emit("connectedToRoom", chatroomId, user.id)
+```
+
+#### `on("connectToRoom")`
+**Where**: Server
+
+**connectToRoom**이벤트는 몇 가지 중요한 기능을 합니다. 먼저, 소켓 룸(socket room)에 유저를 추가합니다 (룸의 이름은 채팅방의 아이디가 됩니다). 또 다른 기능은 redis에서 "마지막 접속 시간"을 저장합니다. 특정 채팅방에 유저가 열람하지 않은 메세지의 수를 트래킹하기 위해서 필요합니다.
+
+```ts
+const timestamp = Date.now()
+await socket.join(chatroomId);
+await redis.set(`last_seen-${userId}-${chatroomId}`, timestamp)
+
+io.to(chatroomId).emit("joinedChatroom")
+```
+
+#### `emit("joinedChatroom")`
+**Where**: Server
+
+유저가 소켓 룸에 성공적으로 추가되었다면 해당 이벤트가 클라이언트로 내보내집니다.
+
+```ts
+io.to(chatroomId).emit("joinedChatroom")
+```
+
+#### `on("joinedChatroom")`
+**Where**: Client
+
+서버로부터 해당 이벤트를 받습니다. 이후, 클라이언트는 몇 가지 로직을 처리합니다. 그 중 하나는 채팅 입력창을 작동하게 하는 겁니다. 유저가 소켓 룸에 접속되어 있지 않은 상태에서 메세지를 보내면 안 되기 때문입니다.
+
+```ts
+socket.on("joinedChatroom", () => {
+  setIsConnected(true)
+});
+```
+
+#### `emit("leaveChatroom")`
+**Where**: Client
+
+유저가 채팅방을 나갈 때 해당 이벤트가 트리거 됩니다. 이것이 발생하는 두 가지 경우는 이렇습니다.
+
+1. 유저가 채팅방에서 대시보드 페이지로 이동할 때 (혹은 채팅방이 아닌 다른 페이지로 이동했을 때)
+2. 유저가 채팅방에서 또 다른 채팅방으로 이동할 때
+
+**leaveChatroom**은 "마지막 접속 시간"을 업데이트 해주는 중요한 기능을 수행하기도 합니다.
+
+```ts
+socket.emit("leaveChatroom", previousChatroomId.current, user.id)
+```
+
+클라이언트는 이전에 접속했던 채팅방 아이디와 유저의 아이디를 서버로 보냅니다.
+
+#### `on("leaveChatroom")`
+**Where**: Server
+
+```ts
+socket.on("leaveChatroom", async (chatroomId, userId) => {
+  const timestamp = Date.now()
+  await redis.set(`last_seen-${userId}-${chatroomId}`, timestamp)
+  await socket.leave(chatroomId))
+})
+```
+
+이 코드는 간단하지만 정말 중요합니다. 해당 이벤트가 트리거된 날짜와 시간을 알아낸 후, redis의 **last_seen**값을 업데이트 합니다. 이 코드는 유저를 기존에 접속되어 있던 소켓 룸에서 퇴장시킵니다.
+
+#### `emit("sendMessage")`
+**Where**: Client
+
+이 이벤트는 유저가 메세지를 전송할 때 트리거 됩니다. 메세지, 보내는 유저의 아이디, 보내는 유저의 프로파일 사진, 그리고 보내는 사람의 친구들의 소켓 아이디를 서버로 보냅니다.
+
+#### `on("sendMessage")`
+**Where**: Server
+
+메세지는 redis에 저장됩니다.
+
+```ts
+const timestamp = Date.now()
+await redis.zadd(`messages-${chatroomId}`, timestamp, JSON.stringify({
+  message,
+  senderId,
+  timestamp,
+  senderImage
+}))
+```
+
+**message**라는 이벤트와 **lastMessage**라는 이벤트를 트리거합니다.
+
+#### `emit("message")`
+**Where**: Server
+
+해당 이벤트는 메세지가 전송된 특정 소켓 룸에 내보내집니다. 메세지, 보내는 유저의 아이디, 보내는 유저의 프로파일 사진, 전송 시간, 그리고 채팅방 아이디를 클라이언트로 보냅니다.
+
+```ts
+io.to(chatroomId).emit("message", message, senderId, timestamp, chatroomId, senderImage)
+```
+
+#### `on("message")`
+**Where**: Client
+
+클라이언트는 해당 이벤트를 받습니다. 그리고 메세지를 react state에 append해줍니다.
+
+```ts
+const handleMessage = (message: string, senderId: string, timestamp: number, incomingChatroomId: string, senderImage: string) => {
+  const newMessage: Message = { message, senderId, timestamp, senderImage };
+
+  if (incomingChatroomId === chatId) {
+    setMessageList((prevState) => [...prevState, newMessage]);
+  }
+};
+
+socket.on("message", handleMessage)
+```
+
+혹시나 하는 상황에 대비해, 해당 메세지가 해당 채팅방의 메세지가 맞는지 확인도 해줍니다.
+
+#### `emit("lastMessage")`
+**Where**: Server
+
+해당 이벤트는 유저 클라이언트에 채팅방에 마지막으로 저장된 메세지를 표시하기 위해 사용됩니다. 어떤 채팅방에 메세지가 전송되면 해당 메세지가 UI로 표시됩니다.
+
+**sendMessage**이벤트 내에는 채팅방 참여자들의 소켓 아이디를 추출한 후, 마지막으로 전송된 메세지를 보냅니다.
+
+```ts
+await Promise.all(participantsSocketIds.map(async (socketId): Promise<void> => {
+  return new Promise((resolve) => {
+    io.to(socketId).emit("lastMessage", message, chatroomId)
+    resolve()
+  })
+}))
+```
+
+#### `on("lastMessage")`
+**Where**: Client
+
+해당 이벤트는 클라이언트에서 받은 후, UI가 업데이트 됩니다.
+
+```ts
+socket.on("lastMessage", async (message, chatroomId) => {
+  if (data.id === chatroomId) {
+    setLastMesage(message)
+    if (chatId !== chatroomId) {
+      setUnreadMessages(prevCount => prevCount + 1)
+    }
+  }
+})
+```
+
+위 코드는 `data.id`와 `chatroomId`가 일치하는지 확인합니다. 일치한다면 그 채팅방의 메세지이기 때문에 표시해줍니다.
+
+또한, `chatId`와 `chatroomId`도 확인해줍니다. 서로 일치하지 않는다면 **현재 유저가 해당 채팅방에 있지 않다는 뜻**이기 때문에 숫자로 안 읽은 메세지의 수를 표시해줍니다.
+
+#### `emit("logout")`
+**Where**: Client
+
+유저가 로그아웃하면 해당 이벤트가 트리거 됩니다.
+
+```ts
+socket.emit("logout", user?.id)
+```
+
+#### `on("logout")`
+**Where**: Server
+
+유저가 로그아웃하면 서버는 로그아웃하는 유저에게 친구가 있는지 확인합니다. 없다면 현재 유저의 상태를 **offline**으로 수정 후 로직을 끝냅니다. 친구가 있다면 친구들에게 업데이트 된 현재 유저의 접속 상태를 보냅니다. 이 로직은 위에서 설명된 [getOnlineFriend](#emitgetonlinefriend)와 똑같습니다.
