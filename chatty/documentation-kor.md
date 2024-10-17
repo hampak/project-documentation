@@ -541,3 +541,33 @@ return validFriendSocketIds.forEach(async id => {
 위 코드에서 볼 수 있듯이, 친구들의 소켓 아이디와 친구들의 접속 상태도 추출합니다. 이 데이터는 현재 유저에게 `retrieveOnlineFriends`이벤트로 클라이언트에 보냅니다. 이후, 현재 유저의 접속 상태가 친구들에게 보내집니다.
 
 유저의 접속 상태가 "away"일 때도 이와 똑같은 로직이 적용됩니다.
+
+#### `emit("retrieveCurrentUser")`
+**Where**: Server
+
+현재 로그인된 유저의 접속 상태를 클라이언트로 보내주는 이벤트입니다.
+
+```ts
+io.to(socket.id).emit("retrieveCurrentUser", socket.id, currentUserStatus)
+```
+
+#### `on("retrieveCurrentUser")`
+**Where**: Client
+
+서버로부터 **retrieveCurrentUser** 이벤트를 받은 후, 클라이언트에서 현재 유저의 접속 상태를 UI에 표시합니다.
+
+```ts
+socket.on("retrieveCurrentUser", async (currentUserSocketId: string, currentUserStatus: "online" | "away") => {
+  setCurrentStatus({
+    socketId: currentUserSocketId,
+    status: currentUserStatus
+  })
+})
+```
+
+#### `emit("getOnlineFriend")`
+**Where**: Server
+
+이 이벤트는 서버에서 내보냅니다. 유저의 친구들에게 현재 유저의 접속 상태를 보내기 때문에 가장 중요한 소켓 이벤트 중 하나입니다. 현재 유저의 친구들의 소켓 아이디를 쿼리한 후 각각 현재 유저의 아이디, 접속 상태, 그리고 소켓 아이디를 내보냅니다.
+
+**더 자세한 설명은 [위](#onuseronline)에서 확인하실 수 있습니다**
