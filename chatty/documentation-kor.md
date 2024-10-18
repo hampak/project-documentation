@@ -937,3 +937,33 @@ socket.emit("logout", user?.id)
 **Where**: Server
 
 유저가 로그아웃하면 서버는 로그아웃하는 유저에게 친구가 있는지 확인합니다. 없다면 현재 유저의 상태를 **offline**으로 수정 후 로직을 끝냅니다. 친구가 있다면 친구들에게 업데이트 된 현재 유저의 접속 상태를 보냅니다. 이 로직은 위에서 설명된 [getOnlineFriend](#emitgetonlinefriend)와 똑같습니다.
+
+# 앱 기능
+
+Chatty 앱을 개발한 목적 중 하나는 웹 소켓 기술과 익숙해지기 위함이었습니다. 웹 소켓을 이용한 기능을 소개해드리겠습니다.
+
+- [친구 추가하기](#친구-추가하기)
+- [유저의 접속 상태 변경하기](#유저의-접속-상태-변경하기)
+- [채팅방 생성하기](#채팅방-생성하기)
+- [메세지 전송하기](#메세지-전송하기)
+- [읽지 않은 메세지 개수](#읽지-않은-메세지-개수)
+
+#### 친구 추가하기
+
+https://github.com/user-attachments/assets/e09fa1ec-5668-464b-ac2f-fc7d2898d51c
+
+#### 유저의 접속 상태 변경하기
+
+https://github.com/user-attachments/assets/b80a94b1-489a-4fa0-9bd1-8a8699f34511
+
+#### 채팅방 생성하기
+
+https://github.com/user-attachments/assets/ffe0c01e-0ba8-4f08-bf7c-534eac7e9ff4
+
+#### 메세지 전송하기
+
+https://github.com/user-attachments/assets/f3a17409-8b58-49ae-86ec-4c115ca94c34
+
+#### 읽지 않은 메세지 개수
+
+https://github.com/user-attachments/assets/202f216a-be04-43c5-acd0-53649d168fef
