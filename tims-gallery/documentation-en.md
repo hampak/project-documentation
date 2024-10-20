@@ -46,3 +46,47 @@ For the gallery page, I used the following tech stack:
 
 It's pretty similar when comparing to the admin page.
 
+# API Documentation
+
+The API documentation section is divided into the admin page and the gallery page. Feel free to click on the parts you'd like to see in the list below.
+
+## Admin Page
+- [authentication](#authentication)
+- [content](#content)
+
+### Authentication
+- [sign-up-action](#sign-up-action)
+- [sign-in-action](#sign-in-action)
+- [sign-out-action](#sign-out-action)
+
+#### `sign-up-action`
+Although the sole user of the admin page is me, I still felt that I needed to document how I implemented the user registration feature. It felt weird building this feature because I was the only user. However, I wanted to learn how to implement user registration feature using **lucia auth** with drizzle orm.
+
+Now, I chose to use **drizzle orm** and **lucia** as the tech stack for authentication to challenge myself. At the point of developing this feature, there weren't a lot of sources that explained how to do this. In the end, I found a way to do this.
+
+First, the client sends the required fields to register a user. For now, I wanted to make it simple so it was just the **username** and the **password**.
+
+```tsx
+const onSubmit = (values: z.infer<typeof RegisterUserSchema>) => {
+  startTransition(() => {
+    signUpAction(values.username, values.password)
+      .then((result) => {
+        ...
+      })
+  })
+}
+```
+
+This is sent to the server action.
+
+```ts
+export async function signUpAction(username: string, password: string) {
+  try {
+    const user = await registerUserUseCase(username, password)
+  } catch (err) {
+    ...
+  }
+  return redirect("/")
+}
+```
+
