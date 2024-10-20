@@ -156,3 +156,96 @@ async function hashPassword(plainTextPassword: string, salt: string) {
 After creating both the **salt** and **hash**, we insert it in our postgres database.
 
 Lastly, we return the **user** and redirect the user to the main page.
+
+#### `sign-in-action`
+
+This server action signs in the user (me). The server action function takes in an **username** and **password** from the client.
+
+Here's the client-side code:
+
+```tsx
+const onSubmit = (values: z.infer<typeof RegisterUserSchema>) => {
+  startTransition(() => {
+    signInAction(values.username, values.password)
+      .then((result) => {
+        ...
+      })
+  })
+}
+```
+
+And here's the server action function:
+
+```ts
+export async function signInAction(username: string, password: string) {
+
+  const user = await signInUseCase(username, password)
+
+  if (!user) {
+    return {
+      errors: "Invalid Credentials - Please Try Again"
+    }
+  }
+
+  const session = await lucia.createSession(user.id, {})
+  const sessionCookie = lucia.createSessionCookie(session.id)
+  cookies().set(
+    sessionCookie.name,
+    sessionCookie.value,
+    sessionCookie.attributes
+  )
+
+  return redirect("/dashboard")
+}
+```
+
+Let's go over it step by step. The values received from the client is then passed on to a function called `signInUseCase`. Here is the `signInUseCase` function:
+
+```ts
+export async function signInUseCase(username: string, password: string) {
+
+  const user = await db.query.userTable.findFirst({
+    where: eq(userTable.username, username)
+  })
+
+  if (!user) {
+    return null
+  }
+
+  const isPasswordCorrect = await verifyPassword(username, password)
+
+  if (!isPasswordCorrect) {
+    return null
+  }
+
+  return user
+}
+```
+
+1. The code first checks to see if a user with the username exists in the database. If it doesn't exist, we return null which will send an error to the client code
+2. If a user with the username does exist, we then check to see if the password is valid. If it's not a valid password, we return null which will send an error to the client code
+3. If all checks pass, we return the user
+
+Let's take a look at the `verifyPassword` function.
+
+```ts
+async function verifyPassword(username: string, plainTextPassword: string) {
+  const user = await db.query.userTable.findFirst({
+    where: eq(userTable.username, username)
+  })
+
+  if (!user) {
+    return false
+  }
+
+  const salt = user.salt
+  const savedPassword = user.hashedPassword
+
+  if (!salt || !savedPassword) {
+    return false;
+  }
+
+  const hash = await hashPassword(plainTextPassword, salt)
+  return user.hashedPassword == hash
+}
+```
