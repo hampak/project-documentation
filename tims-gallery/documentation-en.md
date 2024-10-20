@@ -90,3 +90,69 @@ export async function signUpAction(username: string, password: string) {
 }
 ```
 
+Within the server action, the values are passed in a function called `registerUserUseCase`. Here's the logic I implemented in this function:
+
+1. First, we check to see if a user with the username already exists in the database. If it does, we return an error
+2. If we past the check above, we then move onto the next part which is generating the required **salt** and **hash** to store in the database. These values will be used in the authentication process
+3. We then insert a new user in our database
+
+```ts
+export async function registerUserUseCase(username: string, password: string) {
+
+  const existingUser = await db.query.userTable.findFirst({
+    where: eq(userTable.username, username)
+  })
+
+  if (existingUser) {
+    return {
+      errors: "Username already in use"
+    }
+  }
+
+  ...
+}
+```
+
+We check if the username already exists.
+
+Then we generate the **salt** and **hash**.
+
+```ts
+const salt = crypto.randomBytes(128).toString("base64")
+const hash = await hashPassword(password, salt)
+const user = await db
+  .insert(userTable)
+  .values({
+    hashedPassword: hash,
+    username,
+    salt,
+    id: uuidv4(),
+  })
+  .returning()
+
+return user
+```
+
+We generate a salt using the **crypto** module of NodeJS. After that, we create a **hashed password**. We do this by passing in the **password** and the **salt** to a function called `hashPassword`. This function creates a hashed password with the logic below:
+
+```ts
+async function hashPassword(plainTextPassword: string, salt: string) {
+  return new Promise<string>((resolve, reject) => {
+    crypto.pbkdf2(
+      plainTextPassword,
+      salt,
+      10000,
+      64,
+      "sha512",
+      (err, derivedKey) => {
+        if (err) reject(err)
+        resolve(derivedKey.toString("hex"))
+      }
+    )
+  })
+}
+```
+
+After creating both the **salt** and **hash**, we insert it in our postgres database.
+
+Lastly, we return the **user** and redirect the user to the main page.
