@@ -249,3 +249,6 @@ async function verifyPassword(username: string, plainTextPassword: string) {
   return user.hashedPassword == hash
 }
 ```
+
+As we can see here, the function takes in the **username** and the **password**. Just to be sure, we check once more if a user with the **username** exists in the database. After the check, we check to see if the **salt** and **password** exists in the database. If it does, we put the **salt** and the **password(from the client)** in the `hashPassword` function which was mentioned above. If the password is valid, we know that the user inputted the correct password.
+
