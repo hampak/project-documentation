@@ -301,8 +301,8 @@ const sessionCookie = lucia.createSessionCookie(session.id)
 
 After this, we set it as cookies.
 
-- sessionCookie.name: sets the name of the cookie. In this case, it's **auth_session**
-- sessionCookie.value: sets the value of the session cookie.
-- sessionCookie.attributes: sets the options of the session cookie such as the **httpOnly** or **maxAge** configurations
+- `sessionCookie.name`: sets the name of the cookie. In this case, it's **auth_session**
+- `sessionCookie.value`: sets the value of the session cookie.
+- `sessionCookie.attributes`: sets the options of the session cookie such as the **httpOnly** or **maxAge** configurations
 
 After this, the user is redirected to the dashboard page.
