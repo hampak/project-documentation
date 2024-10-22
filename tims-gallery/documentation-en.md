@@ -252,3 +252,57 @@ async function verifyPassword(username: string, plainTextPassword: string) {
 
 As we can see here, the function takes in the **username** and the **password**. Just to be sure, we check once more if a user with the **username** exists in the database. After the check, we check to see if the **salt** and **password** exists in the database. If it does, we put the **salt** and the **password(from the client)** in the `hashPassword` function which was mentioned above. If the password is valid, we know that the user inputted the correct password.
 
+When then move to this piece of code in our server action:
+
+```ts
+const session = await lucia.createSession(user.id, {})
+const sessionCookie = lucia.createSessionCookie(session.id)
+cookies().set(
+  sessionCookie.name,
+  sessionCookie.value,
+  sessionCookie.attributes
+)
+```
+
+We want to create a session and a session cookie. These will be used to automatically validate the already-authenticated user.
+
+First, let's take a look at thie line of code:
+
+```ts
+const session = await lucia.createSession(user.id, {})
+```
+
+We send the authenticated user's id to Lucia's [`createSession`](https://v2.lucia-auth.com/reference/lucia/interfaces/auth/#createsession) function.
+
+In the code, it creates a new Lucia instance where I can set configurations related to session and session cookies.
+
+For example, like this:
+
+```ts
+const lucia = new Lucia(adapter, {
+  sessionCookie: {
+    expires: false,
+    attributes: {
+      secure: false
+    }
+  },
+  sessionExpiresIn: new TimeSpan(20, "m"), // can set session expiration
+  getUserAttributes: (attributes) => {
+    return { ...attributes }
+  }
+});
+```
+
+After creating the session, we create the **session cookie**.
+
+```ts
+const sessionCookie = lucia.createSessionCookie(session.id)
+```
+
+After this, we set it as cookies.
+
+- sessionCookie.name: sets the name of the cookie. In this case, it's **auth_session**
+- sessionCookie.value: sets the value of the session cookie.
+- sessionCookie.attributes: sets the options of the session cookie such as the **httpOnly** or **maxAge** configurations
+
+After this, the user is redirected to the dashboard page.
