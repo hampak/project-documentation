@@ -306,3 +306,32 @@ After this, we set it as cookies.
 - `sessionCookie.attributes`: sets the options of the session cookie such as the **httpOnly** or **maxAge** configurations
 
 After this, the user is redirected to the dashboard page.
+
+#### `sign-out-action`
+
+This server logs out the current user.
+
+```ts
+export async function signOutAction() {
+  const { session } = await validateRequest();
+  if (!session) {
+    return {
+      error: "Unauthorized"
+    }
+  }
+
+  await lucia.invalidateSession(session.id)
+  const sessionCookie = lucia.createBlankSessionCookie();
+  cookies().set(
+    sessionCookie.name,
+    sessionCookie.value,
+    sessionCookie.attributes
+  )
+
+  return redirect("/")
+}
+
+It first checks the session status by using the `validateRequest` function. Let's take a look at how this function works.
+
+
+```
