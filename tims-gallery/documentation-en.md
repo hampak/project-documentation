@@ -330,8 +330,67 @@ export async function signOutAction() {
 
   return redirect("/")
 }
+```
 
 It first checks the session status by using the `validateRequest` function. Let's take a look at how this function works.
 
 
+```ts
+export const validateRequest = cache(
+  async (): Promise<{ user: User; session: Session } | { user: null; session: null }> => {
+    const sessionId = cookies().get(lucia.sessionCookieName)?.value ?? null;
+    if (!sessionId) {
+      return {
+        user: null,
+        session: null
+      };
+    }
+
+    const result = await lucia.validateSession(sessionId);
+    // next.js throws when you attempt to set cookie when rendering page
+    try {
+      if (result.session && result.session.fresh) {
+        const sessionCookie = lucia.createSessionCookie(result.session.id);
+        cookies().set(sessionCookie.name, sessionCookie.value, sessionCookie.attributes);
+      }
+      if (!result.session) {
+        const sessionCookie = lucia.createBlankSessionCookie();
+        cookies().set(sessionCookie.name, sessionCookie.value, sessionCookie.attributes);
+      }
+    } catch { ... }
+    return result;
+  }
+);
 ```
+
+The function is wrapped in `cache`. It does some checks to see if the **sessionId** exists. If it doesn't, it will return **null** values for both the **user** and the **session**.
+
+However, if there is a **sessionId**, we validate the session using `validateSession`. After some checks, we return the result.
+
+Back to the code above, if there isn't a **sessionId**, the code returns null which will be caught in this line here:
+
+```ts
+if (!session) {
+    return {
+      error: "Unauthorized"
+    }
+  }
+```
+
+However, if there is a **sessionId**, we invalidate the session using the `invalidateSession`.
+
+```ts
+await lucia.invalidateSession(session.id)
+const sessionCookie = lucia.createBlankSessionCookie();
+cookies().set(
+  sessionCookie.name,
+  sessionCookie.value,
+  sessionCookie.attributes
+)
+
+return redirect("/")
+```
+
+We also create a **blank session cookie** which we will set as the browser cookie.
+
+Then, we navigate the user back to the login page.
