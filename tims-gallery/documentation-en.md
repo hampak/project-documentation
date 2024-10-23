@@ -397,3 +397,15 @@ return redirect("/")
 We also create a **blank session cookie** which we will set as the browser cookie.
 
 Then, we navigate the user back to the login page.
+
+### Content
+
+- [get-posts-action](#get-posts-action)
+- [get-post-action](#get-post-action)
+- [create-post-action](#create-post-action)
+- [update-post-action](#update-post-action)
+- [delete-photo-action](#delete-photo-action)
+- [delete-post-action](#delete-post-action)
+
+#### `get-posts-action`
+
