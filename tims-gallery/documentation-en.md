@@ -453,3 +453,32 @@ numberOfPosts = await db.select({ count: count() }).from(posts);
 ```
 
 Finally, we return the **allPosts** and **numberOfPosts** to the client.
+
+#### `get-post-action`
+
+This server action is used to fetch the specific post when we navigate to a `/dashboard/post/[postId]` page.
+
+After checking the authentication status, it fetches data using drizzle orm.
+
+```ts
+let post
+
+try {
+  post = await db.query.posts.findFirst({
+    where: eq(posts.id, id),
+    with: {
+      photos: {
+        orderBy: [asc(photos.createdAt)]
+      }
+    }
+  })
+} catch (error) {
+  return {
+    error: "Failed to retrieve post"
+  }
+}
+```
+
+Nothing complicated here. We retrieve the post that matches with the **id** value. The **id** is passed from the client. We also order the photos in the order in which they were created.
+
+We return the post to the client.
