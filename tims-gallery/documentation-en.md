@@ -444,7 +444,7 @@ allPosts = await db.query.posts.findMany({
 })
 ```
 
-Pagination will be discussed more in-depth in **[this]**() part of the post.
+Pagination will be discussed more in-depth in [**this**]() part of the post.
 
 After fetching the posts, we also return the value **numberOfPosts** with drizzle orm.
 
