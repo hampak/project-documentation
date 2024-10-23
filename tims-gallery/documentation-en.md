@@ -482,3 +482,73 @@ try {
 Nothing complicated here. We retrieve the post that matches with the **id** value. The **id** is passed from the client. We also order the photos in the order in which they were created.
 
 We return the post to the client.
+
+#### `create-post-action`
+
+This server action creates a post. This server action was one of the most difficult parts I faced while building this project. Mainly because it involved using AWS S3 to store the images.
+
+First, we check the authentication status of the user.
+
+Next, we store the list of data we received from the client in their separate arrays.
+
+```ts
+export async function createPostAction(formData: FormData, postTitle: string) {
+
+  // check user's authentication status
+
+    const photoIdsArray = formData.getAll("photoId")
+    const photoTitlesArray = formData.getAll("photoTitle")
+    const photoDescriptionsArray = formData.getAll("photoDescription")
+    const photoImagesArray = formData.getAll("photoImage")
+    const photoCamerasArray = formData.getAll("camera")
+    const photoLensArray = formData.getAll("lens")
+    const photoFilmsArray = formData.getAll("film")
+
+  } catch { ... }
+
+...
+}
+```
+
+I've written a detailed explanation of the complex form structure in [**this**]() part of the documentation.
+
+We then create an array called **contentArray** where we will loop over each of the arrays listed above and store them in objects.
+
+```ts
+let contentArray = []
+
+for (let i = 0; i < photoIdsArray.length; i++) {
+  contentArray[i] = {
+    photoTitle: photoTitlesArray[i],
+    photoDescription: photoDescriptionsArray[i],
+    photoImage: photoImagesArray[i],
+    camera: photoCamerasArray[i],
+    lens: photoLensArray[i],
+    film: photoFilmsArray[i]
+  }
+}
+```
+
+The **contentArray** array will looks something like this:
+
+```ts
+[
+  {
+    photoTitle: "",
+    photoDescription: "",
+    photoImage: "",
+    camera: "",
+    lens: "",
+    film: ""
+  },
+  {
+    photoTitle: "",
+    photoDescription: "",
+    photoImage: "",
+    camera: "",
+    lens: "",
+    film: ""
+  }
+  ...
+]
+```
