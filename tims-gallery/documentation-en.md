@@ -409,3 +409,47 @@ Then, we navigate the user back to the login page.
 
 #### `get-posts-action`
 
+As the name suggests, this server action fetches the list of posts which will be shown in the dashboard page.
+
+First, we check to see that the user is authenticated.
+
+```ts
+export async function getPostsAction(page: number, limit: number) {
+  const { user } = await validateRequest()
+
+  if (!user) {
+    return {
+      error: "ERROR - Not Authenticated"
+    }
+  }
+
+  ...
+}
+```
+
+Next, we create two variables: **allPosts** and **numberOfPosts**.
+
+We set the **offset** value which will be vital for the pagination feature.
+
+```ts
+const offset = (page - 1) * 11
+
+allPosts = await db.query.posts.findMany({
+  with: {
+    photos: true
+  },
+  orderBy: [desc(posts.createdAt)],
+  limit,
+  offset // the number set here will tell drizzle orm to skip that amount of rows.
+})
+```
+
+Pagination will be discussed more in-depth in **[this]**() part of the post.
+
+After fetching the posts, we also return the value **numberOfPosts** with drizzle orm.
+
+```ts
+numberOfPosts = await db.select({ count: count() }).from(posts);
+```
+
+Finally, we return the **allPosts** and **numberOfPosts** to the client.
