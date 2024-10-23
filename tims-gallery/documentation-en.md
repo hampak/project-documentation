@@ -50,6 +50,9 @@ It's pretty similar when comparing to the admin page.
 
 The API documentation section is divided into the admin page and the gallery page. Feel free to click on the parts you'd like to see in the list below.
 
+- [Admin Page](#admin-page)
+- [Gallery Page](#gallery-page)
+
 ## Admin Page
 - [authentication](#authentication)
 - [content](#content)
