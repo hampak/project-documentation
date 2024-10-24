@@ -806,3 +806,21 @@ However, what if the user changes the image? In that case, we move on to the **e
 > You might be wondering: "Isn't it inefficient to update the fields even if they weren't changed?". That is absolutely correct. However, I had my reasons for implementing the logic like this which I have explained [here](#) in the documentation.
 
 For the `createPhoto` function, it's the same logic for mentioned [above](#create-post-action).
+
+#### `delete-photo-action`
+
+This is a simple server action that deletes a photo. It takes in the **photoId** value where we use drizzle orm to delete it rom our database.
+
+```ts
+try {
+  await db.delete(photos)
+    .where(eq(photos.id, photoId))
+} catch (error) {
+  return {
+    error: "Error while deleting photo"
+  }
+}
+```
+
+> Deleting the image object in my S3 bucket hasn't been implemented yet
+
