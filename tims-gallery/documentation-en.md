@@ -840,3 +840,14 @@ try {
 ```
 
 > Deleting the image object(s) in my S3 bucket hasn't been implemented yet
+
+## Gallery Page
+- [posts](#posts)
+
+### Posts
+- [get-infinite-posts-action](#get-infinite-posts-action)
+- [get-specific-post-action](#get-specific-post-action)
+
+#### `get-infinite-posts-action`
+
+This is the server action that gets called in the main page of the gallery.
