@@ -824,3 +824,19 @@ try {
 
 > Deleting the image object in my S3 bucket hasn't been implemented yet
 
+### `delete-post-action`
+
+This server action deletes the entire post. It takes in the **postId** and deletes it from my database.
+
+```ts
+try {
+  await db.delete(posts)
+    .where(eq(posts.id, postId))
+} catch (err) {
+  return {
+    error: "Error while deleting post"
+  }
+}
+```
+
+> Deleting the image object(s) in my S3 bucket hasn't been implemented yet
