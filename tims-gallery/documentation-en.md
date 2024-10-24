@@ -809,7 +809,7 @@ For the `createPhoto` function, it's the same logic for mentioned [above](#creat
 
 #### `delete-photo-action`
 
-This is a simple server action that deletes a photo. It takes in the **photoId** value where we use drizzle orm to delete it rom our database.
+This is a simple server action that deletes a photo. After checking the authentication status, it takes in the **photoId** value where we use drizzle orm to delete it rom our database.
 
 ```ts
 try {
@@ -826,7 +826,7 @@ try {
 
 ### `delete-post-action`
 
-This server action deletes the entire post. It takes in the **postId** and deletes it from my database.
+This server action deletes the entire post. After checking the authentication status, it takes in the **postId** and deletes it from my database.
 
 ```ts
 try {
