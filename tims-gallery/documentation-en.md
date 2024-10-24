@@ -803,6 +803,6 @@ Every time we loop over the **existingContents** array, we check to see if there
 
 However, what if the user changes the image? In that case, we move on to the **else** condition and go through the same logic mentioned [above](#create-post-action).
 
-You might be wondering: "Isn't it inefficient to update the fields even if they weren't changed?". That is absolutely correct. However, I had my reasons for implementing the logic like this which I have explained [here](#) in the documentation.
+> You might be wondering: "Isn't it inefficient to update the fields even if they weren't changed?". That is absolutely correct. However, I had my reasons for implementing the logic like this which I have explained [here](#) in the documentation.
 
 For the `createPhoto` function, it's the same logic for mentioned [above](#create-post-action).
