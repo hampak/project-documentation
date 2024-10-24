@@ -700,3 +700,109 @@ const newFilmArray = formData.getAll("newFilm")
 const newLensArray = formData.getAll("newLens")
 ```
 
+We then create two arrays which will store and organize the data like what I did above.
+
+```ts
+let existingContentArray = []
+let newContentArray = []
+
+for (let i = 0; i < photoIdsArray.length; i++) {
+  existingContentArray[i] = {
+    photoId: photoIdsArray[i],
+    photoTitle: photoTitlesArray[i],
+    photoDescription: photoDescriptionsArray[i],
+    photoImage: photoImagesArray[i],
+    newPhotoImage: photoNewImagesArray[i],
+    camera: photoCamerasArray[i],
+    lens: photoLensArray[i],
+    film: photoFilmsArray[i]
+  }
+}
+
+for (let i = 0; i < newPhotoIdsArray.length; i++) {
+  newContentArray[i] = {
+    newPhotoTitle: newPhotoTitlesArray[i],
+    newPhotoDescription: newPhotoDescriptionsArray[i],
+    photoImage: newPhotoImageArray[i],
+    newCamera: newCameraArray[i],
+    newFilm: newFilmArray[i],
+    newLens: newLensArray[i]
+  }
+}
+```
+
+After this, we update the title of the post.
+
+```ts
+await db.update(posts)
+  .set({
+    title: postTitle
+  })
+  .where(eq(posts.id, postId))
+```
+
+Then, it's the same logic as how I implemented the `create-post-action` server action.
+
+```ts
+const editAllImages = async (existingContents: any) => {
+  const client = new S3Client({
+    region: process.env.BUCKET_REGION,
+    credentials: {
+      accessKeyId: process.env.ACCESS_KEY_ID as string,
+      secretAccessKey: process.env.SECRET_ACCESS_KEY as string,
+    }
+  })
+  for (let i = 0; i < existingContents.length; i++) {
+    await updatePhoto(existingContents[i], client)
+  }
+}
+
+const createAllImages = async (newContents: any) => {
+  const client = new S3Client({
+    region: process.env.BUCKET_REGION,
+    credentials: {
+      accessKeyId: process.env.ACCESS_KEY_ID as string,
+      secretAccessKey: process.env.SECRET_ACCESS_KEY as string,
+    }
+  })
+  for (let i = 0; i < newContents.length; i++) {
+    await createPhoto(newContents[i], client)
+  }
+}
+
+await editAllImages(existingContentArray)
+await createAllImages(newContentArray)
+```
+
+I created separate functions `editAllImages` and `createAllImages`.
+
+- `editAllImages` - The function which will **update** the already existing photos using the `updatePhoto` function
+- `createAllImages` - The function which will **create** new photos and add them to this post using the `createPhoto` function
+
+Let's take a look at the `updatePhoto` function:
+
+```ts
+const updatePhoto = async (existingContents, client) => {
+
+  if (existingContents.newPhotoImage === "undefined") {
+    
+    await db.update(photos)
+      .set({
+        title: existingContents.photoTitle,
+        description: existingContents.photoDescription,
+        camera: existingContents.camera,
+        film: existingContents.film,
+        lens: existingContents.lens,
+        postId: existingContents.postId,
+      })
+      .where(eq(photos.id, existingContents.photoId))
+  } else { ... }
+```
+
+Every time we loop over the **existingContents** array, we check to see if there is a value in **newPhotoImage**. If there isn't one, I've set the value to be "undefined". If this is the case, it means that the user hasn't changed the photo from the client. This means that there's no S3 involved and all we have to do is update the fields **excluding** the **imageUrl**.
+
+However, what if the user changes the image? In that case, we move on to the **else** condition and go through the same logic mentioned [above](#create-post-action).
+
+You might be wondering: "Isn't it inefficient to update the fields even if they weren't changed?". That is absolutely correct. However, I had my reasons for implementing the logic like this which I have explained [here](#) in the documentation.
+
+For the `createPhoto` function, it's the same logic for mentioned [above](#create-post-action).
