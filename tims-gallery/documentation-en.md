@@ -660,3 +660,43 @@ return {
   isSuccess: true
 }
 ```
+
+#### `update-post-action`
+
+This server action updates the content of a post. It can
+
+- Update the **title** of a post
+- Add or delete photos
+- Edit already-existing photos
+- Delete the post entirely
+
+After checking the authentication status, we first store the data of the already existing photo(s) in their own arrays.
+
+```ts
+const photoIdsArray = formData.getAll("photoId")
+const photoTitlesArray = formData.getAll("photoTitle")
+const photoDescriptionsArray = formData.getAll("photoDescription")
+const photoImagesArray = formData.getAll("photoImageUrl")
+const photoNewImagesArray = formData.getAll("newPhotoImage")
+const photoCamerasArray = formData.getAll("photoCamera")
+const photoLensArray = formData.getAll("photoLens")
+const photoFilmsArray = formData.getAll("photoFilm")
+const photoPostIdsArray = formData.getAll("photoPostId")
+```
+
+What's noticeably different is the fact that there is a new array: **photoNewImagesArray**
+
+This is to store the new image. For example, let's say that I uploaded the wrong photo and saved it in my database. Then, I would reupload another image and that image will be stored in this array.
+
+After this, we store the **newly created photos** in a whole different set of arrays.
+
+```ts
+const newPhotoIdsArray = formData.getAll("newPhotoId")
+const newPhotoTitlesArray = formData.getAll("newPhotoTitle")
+const newPhotoDescriptionsArray = formData.getAll("newPhotoDescription")
+const newPhotoImageArray = formData.getAll("photoImage")
+const newCameraArray = formData.getAll("newCamera")
+const newFilmArray = formData.getAll("newFilm")
+const newLensArray = formData.getAll("newLens")
+```
+
