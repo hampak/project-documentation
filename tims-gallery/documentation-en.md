@@ -552,3 +552,111 @@ The **contentArray** array will looks something like this:
   ...
 ]
 ```
+
+After this, we create a new post.
+
+```ts
+const post = await db.insert(posts).values({
+  title: postTitle
+}).returning({
+  postId: posts.id,
+})
+```
+
+We also return the **postId** value because we'll use it later on.
+
+We then move on to storing the actual photos (along with their description, title, image url etc). Let's take a look at this code here:
+
+```ts
+const uploadAllImages = async (contents: any) => {
+  const client = new S3Client({
+    region: process.env.BUCKET_REGION,
+    credentials: {
+      accessKeyId: process.env.ACCESS_KEY_ID as string,
+      secretAccessKey: process.env.SECRET_ACCESS_KEY as string,
+    }
+  })
+  for (let i = 0; i < contents.length; i++) {
+    await createPhoto(contents[i], client)
+  }
+}
+
+await uploadAllImages(contentArray)
+```
+
+Here, I've created a function called `uploadAllImages`. This is an async function and it includes the code needed to access my AWS S3 bucket. After that, the code loops over the length of the contents, and each time the function `createPhoto` is called. Let's take a look at the `createPhoto` function.
+
+```ts
+const createPhoto = async (content, client) => {
+
+  try {
+    const imageName = randomBytes(16).toString("hex")
+
+    const command = new PutObjectCommand({
+      Bucket: process.env.BUCKET_NAME,
+      Key: imageName,
+      ContentType: content.photoImage.type
+    })
+
+
+    const preSignedUrl = await getSignedUrl(client, command, {
+      expiresIn: 30
+    })
+
+    const upload = await fetch(preSignedUrl, {
+      method: "PUT",
+      body: content.photoImage,
+      headers: {
+        "Content-Type": content.photoImage.type
+      }
+    })
+  } catch { ... }
+...
+}
+```
+
+I coded a logic so that on every loop, a photo is uploaded to S3 + retrieve the image url + store data using drizzle.
+
+First, the code creates a name for the image using **randomBytes** from `crypto`. Then, we create a new instance of the **PutObjectCommand** and fill in the configurations.
+
+We get a **signed URL** which we will use to upload it to my S3 bucket. We then add the image to the S3 bucket.
+
+```ts
+if (upload.ok) {
+  const s3FileUrl = `https://${process.env.CDN_URL}.cloudfront.net/${imageName}`
+
+  await db.insert(photos).values({
+    title: content.photoTitle,
+    description: content.photoDescription,
+    imageUrl: s3FileUrl,
+    camera: content.camera,
+    lens: content.lens,
+    film: content.film,
+    postId: post[0].postId
+  })
+
+} else {
+  return {
+    error: "Error while creating photo",
+  }
+} else { ... }
+```
+
+If the upload is successful, we set a variable **s3FileUrl**. This will be the actual **object url** that will be stored in the database. Because I'm using AWS Cloudfront, I've set the object url to look like this:
+
+```
+https://${process.env.CDN_URL}.cloudfront.net/${imageName}
+```
+
+After that, the code adds a new photo with the corresponding values. The **postId** value is important here as it creates a **one-to-many** relationship between the post and photo(s).
+
+Finally, the dashboard path is revalidated and the **postTitle** data along with the **isSuccess** value is passed on to the client.
+
+```ts
+revalidatePath("/dashboard")
+
+return {
+  data: postTitle,
+  isSuccess: true
+}
+```
