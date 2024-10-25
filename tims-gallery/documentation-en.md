@@ -851,3 +851,27 @@ try {
 #### `get-infinite-posts-action`
 
 This is the server action that gets called in the main page of the gallery.
+
+It uses the `useInfiniteQuery` function from **tanstack query**. Here is the server action code:
+
+```ts
+let postsSegment
+
+try {
+  postsSegment = await db.query.posts.findMany({
+    with: {
+      photos: true
+    },
+    where: cursor ? lt(posts.cursor, cursor) : undefined,
+    limit: 9,
+    orderBy: [desc(posts.createdAt)]
+  })
+} catch (error) {
+  return {
+    error: "Failed to retrieve posts :("
+  }
+}
+```
+
+I've made it so that it fetches 9 posts at a time. THe infinite query feature is explained more in detailed in [**this**]() part of the documentation.
+
