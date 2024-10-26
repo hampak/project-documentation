@@ -910,7 +910,7 @@ This section will talk about the features of Tim's Gallery. I've divided this se
 ## Admin Page Feature
 
 - [Creating a Post with a Single Photo](#creating-a-post-with-a-single-photo)
-- [Creating a Post with Multiple Photos(#creating-a-post-with-multiple-photos)
+- [Creating a Post with Multiple Photos](#creating-a-post-with-multiple-photos)
 - [Editing an Existing Photo in a Post](#editing-an-existing-photo-in-a-post)
 - [Adding a New Photo in a Post](#adding-a-new-photo-in-a-post)
 - [Deleting a Photo in a Post](#deleting-a-photo-in-a-post)
