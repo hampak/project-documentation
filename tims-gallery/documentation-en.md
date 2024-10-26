@@ -50,10 +50,10 @@ It's pretty similar when comparing to the admin page.
 
 The API documentation section is divided into the admin page and the gallery page. Feel free to click on the parts you'd like to see in the list below.
 
-- [Admin Page](#admin-page)
-- [Gallery Page](#gallery-page)
+- [Admin Page API](#admin-page-api)
+- [Gallery Page API](#gallery-page-api)
 
-## Admin Page
+## Admin Page API
 - [authentication](#authentication)
 - [content](#content)
 
@@ -841,7 +841,7 @@ try {
 
 > Deleting the image object(s) in my S3 bucket hasn't been implemented yet
 
-## Gallery Page
+## Gallery Page API
 - [posts](#posts)
 
 ### Posts
@@ -898,4 +898,13 @@ try {
 }
 ```
 
-I used drizzle orm to fetch the specific post. The photos are sorted and returned in order they were created in the admin page.
+I used drizzle orm to fetch the specific post. The photos are sorted and returned in the order they were created in the admin page.
+
+# Features
+
+This section will talk about the features of Tim's Gallery. I've divided this section into 2 parts: the admin page and the gallery page.
+
+- [Admin Page Feature](#admin-page-feature)
+- [Gallery Page Feature](#gallery-page-feature)
+
+## Admin Page Feature
