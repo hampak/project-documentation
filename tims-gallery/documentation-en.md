@@ -875,3 +875,27 @@ try {
 
 I've made it so that it fetches 9 posts at a time. THe infinite query feature is explained more in detailed in [**this**]() part of the documentation.
 
+#### `get-specific-post-action`
+
+This server action fetches the data of a specific post. It gets called when a user clicks on a post.
+
+```ts
+try {
+  post = await db.query.posts.findFirst({
+    where: eq(posts.id, postId),
+    with: {
+      photos: {
+        orderBy: [asc(photos.createdAt)]
+      }
+    },
+    orderBy: [desc(posts.createdAt)]
+  })
+
+} catch (error) {
+  return {
+    error: "Failed to retrieve posts :("
+  }
+}
+```
+
+I used drizzle orm to fetch the specific post. The photos are sorted and returned in order they were created in the admin page.
