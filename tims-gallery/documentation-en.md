@@ -916,6 +916,13 @@ This section will talk about the features of Tim's Gallery. I've divided this se
 - [Deleting a Photo in a Post](#deleting-a-photo-in-a-post)
 - [Deleting a Post](#deleting-a-post)
 
+#### `Creating a Post with a Single Photo`
+
+https://github.com/user-attachments/assets/d9fcef21-be85-4d06-a9f7-29cfa81c6990
+
+
+
+
 ## Gallery Page Feature
 
 - [Parellel Routes and Route Interception]()
