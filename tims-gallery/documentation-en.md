@@ -920,7 +920,15 @@ This section will talk about the features of Tim's Gallery. I've divided this se
 
 https://github.com/user-attachments/assets/d9fcef21-be85-4d06-a9f7-29cfa81c6990
 
+#### `Creating a Post with Multiple Photos`
 
+#### `Editing an Existing Photo in a Post`
+
+https://github.com/user-attachments/assets/1291f0f9-2e98-4ba4-a763-e3c100d3d28f
+
+#### `Adding a New Photo in a Post`
+
+#### `Deleting a Photo in a Post`
 
 
 ## Gallery Page Feature
