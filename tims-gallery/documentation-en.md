@@ -928,6 +928,8 @@ https://github.com/user-attachments/assets/1291f0f9-2e98-4ba4-a763-e3c100d3d28f
 
 #### `Adding a New Photo in a Post`
 
+https://github.com/user-attachments/assets/ffa670d5-471b-4e08-9fe4-8b5c4652fc14
+
 #### `Deleting a Photo in a Post`
 
 
