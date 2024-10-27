@@ -932,6 +932,9 @@ https://github.com/user-attachments/assets/ffa670d5-471b-4e08-9fe4-8b5c4652fc14
 
 #### `Deleting a Photo in a Post`
 
+https://github.com/user-attachments/assets/4c247b07-7936-451d-a750-53e64579c1bf
+
+#### `Deleting a Post`
 
 ## Gallery Page Feature
 
