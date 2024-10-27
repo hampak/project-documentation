@@ -936,6 +936,8 @@ https://github.com/user-attachments/assets/4c247b07-7936-451d-a750-53e64579c1bf
 
 #### `Deleting a Post`
 
+https://github.com/user-attachments/assets/bfd61865-8fdf-45e6-88fc-1716c8aa9367
+
 ## Gallery Page Feature
 
 - [Parellel Routes and Route Interception]()
