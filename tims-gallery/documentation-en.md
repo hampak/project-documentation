@@ -824,7 +824,7 @@ try {
 
 > Deleting the image object in my S3 bucket hasn't been implemented yet
 
-### `delete-post-action`
+#### `delete-post-action`
 
 This server action deletes the entire post. After checking the authentication status, it takes in the **postId** and deletes it from my database.
 
