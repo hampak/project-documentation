@@ -31,4 +31,133 @@ Tim's Gallery는 제가 찍은 사진을 업로드하는 온라인 사진 갤러
 
 **NextJS**는 사용하기 편리해서 선택했습니다. 찍은 사진을 업로드 할 스토리지는 아마존의 **S3**를 사용했습니다. 클라이언트 데이터 요청과 패칭은 **tanstack query**를 사용했으며 **zod**를 이용하여 리액트 폼(form)의 타입 체크를 했습니다. **Drizzle orm**를 사용하여 데이터베이스 읽기/쓰기 과정을 편리화 하였고 사용자 로그인 및 인증은 (2025년 3월에 곧 관리가 중단 될)[https://github.com/lucia-auth/lucia/discussions/1714] **lucia**를 활용했습니다. 스타일링은 **tailwindcss**를 활용했으며 텍스트 에디터로는 **blocknote**를 활용했습니다. 이는 노션의 블럭 에디터처럼 유저에게 높은 자유도를 제공해주는 라이브러리이기 때문입니다.
 
-해당 갤러리를 빌드 하면서 가장 큰 난관은 **react hook form**를 사용하는 것이었습니다. 하나의 게시물(post)에 여러개의 사진(photo), 그리고 각 사진마다 갖고 있는 제목, 설명, 장비 상세 내역 등이 포함되어 있기 때문입니다.
+해당 갤러리를 빌드 하면서 가장 큰 난관은 **react hook form**를 사용하는 것이었습니다. 하나의 게시물(post)에 여러개의 사진(photo), 그리고 각 사진마다 갖고 있는 제목, 설명, 장비 상세 내역 등이 포함되어 있기 때문입니다. 하지만 복잡한 구조의 폼을 요한 기능을 구현했으며 문서 후반 부분에 설명을 해놨으니 참고하시면 됩니다.
+
+샐러리 페이지는 해당 기술을 사용했습니다.
+
+```json
+{
+  "nextjs",
+  "typescript",
+  "drizzle-orm",
+  "tailwindcss",
+  "blocknote",
+  "@tanstack/react-query"
+}
+```
+
+어드민 페이지와 비교했을 때 유사하며 더욱 간단합니다.
+
+# API 문서
+
+API 문서 섹션은 어드민 페이지와 갤러리 페이지로 구분 되어 있습니다. 아래 목록의 아이템을 클릭하여 원하시거나 궁금하신 부분으로 바로 이동하실 수 있습니다.
+
+- [어드민 페이지 API](#어드민-페이지-api)
+- [갤러리 페이지 API](#갤러리-페이지-api)
+
+## 어드민 페이지 API
+- [사용자 인증](#사용자-인증)
+- [컨텐츠](#컨텐츠)
+
+### 사용자 인증
+- [sign-up-action](#sign-up-action)
+- [sign-in-action](#sign-in-action)
+- [sign-out-action](#sign-out-action)
+
+#### `sign-up-action`
+어드민 페이지를 사용하는 사람은 저 혼자이지만 유저 등록 절차에 대한 API를 설명해야 할 거 같아서 해당 서버 엑션 설명을 추가했습니다. 저 혼자만 사용하는 것이어서 유저 등록 기능을 구현하는 것이 조금 이상했지만 **lucia auth**와 **drizzle orm**를 이용하여 유저 등록 기능을 구현하고 싶었습니다.
+
+**Drizzle orm**과 **lucia**를 사용한 이유는 제 자신에게 도전을 하고 싶어서 입니다. 해당 갤러리를 빌드할 시기에 **lucia**와 **drizzle orm**를 이용한 유저 인증에 관한 영상이나 게시글 등이 없었기 때문입니다. 하지만, 이를 한 번 도전하고 싶었습니다.
+
+먼저, 클라이언트에서 서버 엑션으로 필요한 필드값을 보냅니다. 최대한 간단하게 구현하기 위해 필요한 필드값은 **username**과 **password**로 등록 기능을 구현했습니다.
+
+```tsx
+const onSubmit = (values: z.infer<typeof RegisterUserSchema>) => {
+  startTransition(() => {
+    signUpAction(values.username, values.password)
+      .then((result) => {
+        ...
+      })
+  })
+}
+```
+
+해당 필드값은 서버 엑션으로 전송됩니다.
+
+```ts
+export async function signUpAction(username: string, password: string) {
+  try {
+    const user = await registerUserUseCase(username, password)
+  } catch (err) {
+    ...
+  }
+  return redirect("/")
+}
+```
+
+서버 엑션 내에서는 `registerUserUseCase`라는 함수 안에서 사용됩니다. 해당 함수는 다음과 같은 로직을 따릅니다.
+
+1. 먼저, 클라이언트로부터 받은 유저네임이 데이터베이스에 이미 있는지 확인합니다. 있다면 에러를 반환합니다.
+2. 위의 체크를 통과하면 다음 단계로 넘어갑니다. 이 단계에서는 데이터베이스에 저장할 **salt**와 **hash**를 생성합니다. 이 값들은 인증 과정에서 사용될 값들입니다.
+3. 이후, 새로운 유저를 데이터베이스에 추가합니다.
+
+```ts
+export async function registerUserUseCase(username: string, password: string) {
+
+  const existingUser = await db.query.userTable.findFirst({
+    where: eq(userTable.username, username)
+  })
+
+  if (existingUser) {
+    return {
+      errors: "Username already in use"
+    }
+  }
+
+  ...
+}
+```
+
+유저네임이 존재하는지 확인합니다.
+
+이후, **salt**와 **hash**를 생성합니다.
+
+```ts
+const salt = crypto.randomBytes(128).toString("base64")
+const hash = await hashPassword(password, salt)
+const user = await db
+  .insert(userTable)
+  .values({
+    hashedPassword: hash,
+    username,
+    salt,
+    id: uuidv4(),
+  })
+  .returning()
+
+return user
+```
+
+salt는 노드의 **crypto**라는 모듈을 활용하여 생성합니다. 이후, **hashed password**를 생성합니다. 이는 `hashPassword`라는 함수에 **password**와 **salt**를 보내서 생성하는데, 로직은 다음과 같습니다.
+
+```ts
+async function hashPassword(plainTextPassword: string, salt: string) {
+  return new Promise<string>((resolve, reject) => {
+    crypto.pbkdf2(
+      plainTextPassword,
+      salt,
+      10000,
+      64,
+      "sha512",
+      (err, derivedKey) => {
+        if (err) reject(err)
+        resolve(derivedKey.toString("hex"))
+      }
+    )
+  })
+}
+```
+
+**salt**와 **hash**를 성공적으로 생성한 후, 데이터베이스에 저장합니다.
+
+마지막으로, **user**를 반환하고 유저를 메인 페이지로 이동시킵니다.
