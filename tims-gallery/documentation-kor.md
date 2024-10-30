@@ -224,6 +224,7 @@ export async function signInUseCase(username: string, password: string) {
 
   return user
 }
+```
 
 1. 전달받은 유저네임으로 유저가 데이터베이스에 존재하는지 확인합니다. 존재하지 않는다면 **null**값을 반환하여 클라이언트에 에러를 보냅니다
 2. 유저네임이 데이터베이스에 존재한다면 비밀번호가 유효한지 확인합니다
