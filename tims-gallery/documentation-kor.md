@@ -230,3 +230,82 @@ export async function signInUseCase(username: string, password: string) {
 2. 유저네임이 데이터베이스에 존재한다면 비밀번호가 유효한지 확인합니다
 3. 유효하지 않다면 **null**값을 반환합니다
 4. 모든 체크가 통과하면 유저를 리턴합니다
+
+`verifyPassword` 함수를 한 번 살펴봅시다.
+
+```ts
+async function verifyPassword(username: string, plainTextPassword: string) {
+  const user = await db.query.userTable.findFirst({
+    where: eq(userTable.username, username)
+  })
+
+  if (!user) {
+    return false
+  }
+
+  const salt = user.salt
+  const savedPassword = user.hashedPassword
+
+  if (!salt || !savedPassword) {
+    return false;
+  }
+
+  const hash = await hashPassword(plainTextPassword, salt)
+  return user.hashedPassword == hash
+}
+```
+
+유저네임과 비밀번호를 값으로 전달 받습니다. 로그인 과정을 조금 더 안전하게 만들기 위해, 해당 함수 내에서도 데이터베이스에 전달받은 유저네임이 존재하는지 확인합니다. 확인 후, 데이터베이스에 **salt**와 **password** 값들이 존재하는지 확인합니다. 존재한다면 해당 값들을 `hashPassword`함수에 전달합니다 (위에서 언급된 함수). 비밀번호가 유효하면 유저가 올바른 비밀번호를 입력했다는 것이고 체크가 통과됩니다.
+
+그럼 다시 서버 엑션 코드로 돌아갑시다. 해당 부분을 살펴보죠.
+
+```ts
+const session = await lucia.createSession(user.id, {})
+const sessionCookie = lucia.createSessionCookie(session.id)
+cookies().set(
+  sessionCookie.name,
+  sessionCookie.value,
+  sessionCookie.attributes
+)
+```
+
+**세션**과 **세션 쿠키**를 생성해야 합니다. 해당 값들을 이용해 유저의 로그인 상태를 자동적으로 판단할 수 있기 때문입니다.
+
+먼저, 해당 코드를 살펴봅시다.
+
+```ts
+const session = await lucia.createSession(user.id, {})
+```
+
+유저의 아이디를 **Lucia**의 [`createSession`](https://v2.lucia-auth.com/reference/lucia/interfaces/auth/#createsession) 함수로 전달합니다.
+
+새로운 Lucia 인스턴스를 생성하며 세션 쿠키의 세부설정을 합니다.
+
+```ts
+const lucia = new Lucia(adapter, {
+  sessionCookie: {
+    expires: false,
+    attributes: {
+      secure: false
+    }
+  },
+  sessionExpiresIn: new TimeSpan(20, "m"), // can set session expiration
+  getUserAttributes: (attributes) => {
+    return { ...attributes }
+  }
+});
+```
+
+**세션**을 만든 후, **세션 쿠키**를 생성합니다.
+
+```ts
+const sessionCookie = lucia.createSessionCookie(session.id)
+```
+
+이후, 이를 브라우저 쿠키로 저장합니다.
+
+- `sessionCookie.name`: 쿠키 값의 이름을 설정합니다. 이 경우엔 **auth_session**로 설정됩니다
+- `sessionCookie.value`: 쿠키 값을 설정합니다
+- `sessionCookie.attributes`: 쿠키의 **httpOnly** 혹은 **maxAge**와 같은 설정을 합니다
+
+쿠키까지 설정된 후, 유저를 대시보드 페이지로 이동시킵니다.
