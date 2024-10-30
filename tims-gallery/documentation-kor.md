@@ -161,3 +161,71 @@ async function hashPassword(plainTextPassword: string, salt: string) {
 **salt**와 **hash**를 성공적으로 생성한 후, 데이터베이스에 저장합니다.
 
 마지막으로, **user**를 반환하고 유저를 메인 페이지로 이동시킵니다.
+
+#### `sign-in-action`
+
+해당 서버 엑션은 유저 로그인 기능을 담당합니다. **username**과 **password** 값을 클라이언트로부터 받습니다. 클라이언트 코드는 이렇습니다.
+
+```tsx
+const onSubmit = (values: z.infer<typeof RegisterUserSchema>) => {
+  startTransition(() => {
+    signInAction(values.username, values.password)
+      .then((result) => {
+        ...
+      })
+  })
+}
+```
+
+그리고 이 기능의 핵심인 서버 엑션 코드입니다.
+
+
+```ts
+export async function signInAction(username: string, password: string) {
+
+  const user = await signInUseCase(username, password)
+
+  if (!user) {
+    return {
+      errors: "Invalid Credentials - Please Try Again"
+    }
+  }
+
+  const session = await lucia.createSession(user.id, {})
+  const sessionCookie = lucia.createSessionCookie(session.id)
+  cookies().set(
+    sessionCookie.name,
+    sessionCookie.value,
+    sessionCookie.attributes
+  )
+
+  return redirect("/dashboard")
+}
+```
+
+하나하나 살펴봅시다. 클라이언트로부터 받은 값들은 `signInUseCase`이라는 함수로 전달됩니다. `signInUseCase` 함수를 살펴봅시다.
+
+```ts
+export async function signInUseCase(username: string, password: string) {
+
+  const user = await db.query.userTable.findFirst({
+    where: eq(userTable.username, username)
+  })
+
+  if (!user) {
+    return null
+  }
+
+  const isPasswordCorrect = await verifyPassword(username, password)
+
+  if (!isPasswordCorrect) {
+    return null
+  }
+
+  return user
+}
+
+1. 전달받은 유저네임으로 유저가 데이터베이스에 존재하는지 확인합니다. 존재하지 않는다면 **null**값을 반환하여 클라이언트에 에러를 보냅니다
+2. 유저네임이 데이터베이스에 존재한다면 비밀번호가 유효한지 확인합니다
+3. 유효하지 않다면 **null**값을 반환합니다
+4. 모든 체크가 통과하면 유저를 리턴합니다
