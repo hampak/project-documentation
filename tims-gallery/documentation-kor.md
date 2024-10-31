@@ -308,3 +308,90 @@ const sessionCookie = lucia.createSessionCookie(session.id)
 - `sessionCookie.attributes`: 쿠키의 **httpOnly** 혹은 **maxAge**와 같은 설정을 합니다
 
 쿠키까지 설정된 후, 유저를 대시보드 페이지로 이동시킵니다.
+
+#### `sign-out-action`
+
+해당 서버 액션은 유저를 로그아웃 시킵니다.
+
+```ts
+export async function signOutAction() {
+  const { session } = await validateRequest();
+  if (!session) {
+    return {
+      error: "Unauthorized"
+    }
+  }
+
+  await lucia.invalidateSession(session.id)
+  const sessionCookie = lucia.createBlankSessionCookie();
+  cookies().set(
+    sessionCookie.name,
+    sessionCookie.value,
+    sessionCookie.attributes
+  )
+
+  return redirect("/")
+}
+```
+
+이후, `validateRequest`라는 함수로 세션의 유효 상태를 확인합니다. `validateRequest` 함수가 어떻게 작동하는지 확인합니다.
+
+```ts
+export const validateRequest = cache(
+  async (): Promise<{ user: User; session: Session } | { user: null; session: null }> => {
+    const sessionId = cookies().get(lucia.sessionCookieName)?.value ?? null;
+    if (!sessionId) {
+      return {
+        user: null,
+        session: null
+      };
+    }
+
+    const result = await lucia.validateSession(sessionId);
+    // next.js throws when you attempt to set cookie when rendering page
+    try {
+      if (result.session && result.session.fresh) {
+        const sessionCookie = lucia.createSessionCookie(result.session.id);
+        cookies().set(sessionCookie.name, sessionCookie.value, sessionCookie.attributes);
+      }
+      if (!result.session) {
+        const sessionCookie = lucia.createBlankSessionCookie();
+        cookies().set(sessionCookie.name, sessionCookie.value, sessionCookie.attributes);
+      }
+    } catch { ... }
+    return result;
+  }
+);
+```
+
+해당 함수는 `cache`아 감싸여 있습니다. **sessionId** 가 존재하는지 확인합니다. 존재하지 않는다면 **user**와 **session**의 값으로 **null**을 반환합니다.
+
+하지만 **sessionId**가 존재한다면 `validateSession`를 이용하여 세션을 확인합니다.
+
+위에서 언급된 것 처럼 **sessionId**가 존재하지 않는다면 해당 코드에 걸려 **null**을 반환합니다.
+
+```ts
+if (!session) {
+    return {
+      error: "Unauthorized"
+    }
+  }
+```
+
+하지만 **sessionId**가 존재한다면 `invalidateSession`를 이용하여 세션을 invalidate합니다.
+
+```ts
+await lucia.invalidateSession(session.id)
+const sessionCookie = lucia.createBlankSessionCookie();
+cookies().set(
+  sessionCookie.name,
+  sessionCookie.value,
+  sessionCookie.attributes
+)
+
+return redirect("/")
+```
+
+추가적으로 **blank session cookie**를 이용해 브라우저 쿠키를 없앱니다.
+
+이후, 유저를 로그인 페이지로 이동시킵니다.
