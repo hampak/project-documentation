@@ -451,3 +451,30 @@ numberOfPosts = await db.select({ count: count() }).from(posts);
 ```
 
 마지막으로 **allPosts** 와 **numberOfPosts** 값을 클라이언트로 반환합니다.
+
+#### `get-post-action`
+
+해당 서버 액션은 `/dashboard/post/[postId]` URL로 이동했을 때 특정한 게시물과 관련된 데이터를 쿼리합니다.
+
+유저 로그인 상태를 확인 한 후, drizzle orm을 이용하여 게시물 데이터를 가져옵니다.
+
+```ts
+let post
+
+try {
+  post = await db.query.posts.findFirst({
+    where: eq(posts.id, id),
+    with: {
+      photos: {
+        orderBy: [asc(photos.createdAt)]
+      }
+    }
+  })
+} catch (error) {
+  return {
+    error: "Failed to retrieve post"
+  }
+}
+```
+
+복잡한 로직은 없습니다. **id** 값과 일치하는 게시물의 데이터를 쿼리합니다. **id**값을 클라이언트에서 가져옵니다. 또한, 게시물의 photo는 데이터베이스에 저장된 순서로 쿼리됩니다.
