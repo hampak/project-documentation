@@ -478,3 +478,30 @@ try {
 ```
 
 복잡한 로직은 없습니다. **id** 값과 일치하는 게시물의 데이터를 쿼리합니다. **id**값을 클라이언트에서 가져옵니다. 또한, 게시물의 photo는 데이터베이스에 저장된 순서로 쿼리됩니다.
+
+#### `create-post-action`
+
+해당 서버 액션은 게시물을 하나 생성합니다. 해당 서버 액션의 로직을 구현하는 것이 이번 프로젝트를 진행하면서 가장 어려운 것 중 하나였습니다. AWS S3를 이용하는 것이 이 원인 중 하나였습니다.
+
+먼저, 유저의 로그인 상태를 확인합니다.
+
+이후, 클라이언트에서 받은 데이터를 각각 배열에 할당합니다.
+
+```ts
+export async function createPostAction(formData: FormData, postTitle: string) {
+
+  // check user's authentication status
+
+    const photoIdsArray = formData.getAll("photoId")
+    const photoTitlesArray = formData.getAll("photoTitle")
+    const photoDescriptionsArray = formData.getAll("photoDescription")
+    const photoImagesArray = formData.getAll("photoImage")
+    const photoCamerasArray = formData.getAll("camera")
+    const photoLensArray = formData.getAll("lens")
+    const photoFilmsArray = formData.getAll("film")
+
+  } catch { ... }
+
+...
+}
+```
