@@ -395,3 +395,59 @@ return redirect("/")
 추가적으로 **blank session cookie**를 이용해 브라우저 쿠키를 없앱니다.
 
 이후, 유저를 로그인 페이지로 이동시킵니다.
+
+### 컨텐츠
+
+- [get-posts-action](#get-posts-action)
+- [get-post-action](#get-post-action)
+- [create-post-action](#create-post-action)
+- [update-post-action](#update-post-action)
+- [delete-photo-action](#delete-photo-action)
+- [delete-post-action](#delete-post-action)
+
+#### `get-posts-action`
+
+이름에서 알 수 있듯이 해당 서버 엑션은 대쉬보드 페이지에 표시될 게시물을 데이터베이스에서 쿼리합니다.
+
+먼저, 유저가 로그인 했는지 확인합니다.
+
+```ts
+export async function getPostsAction(page: number, limit: number) {
+  const { user } = await validateRequest()
+
+  if (!user) {
+    return {
+      error: "ERROR - Not Authenticated"
+    }
+  }
+
+  ...
+}
+```
+
+이후, **allPosts** 와 **numberOfPosts**이라는 변수를 생성합니다.
+
+Pagination을 위해 **offset** 값도 설정합니다.
+
+```ts
+const offset = (page - 1) * 11
+
+allPosts = await db.query.posts.findMany({
+  with: {
+    photos: true
+  },
+  orderBy: [desc(posts.createdAt)],
+  limit,
+  offset // the number set here will tell drizzle orm to skip that amount of rows.
+})
+```
+
+Pagination 관련해서는 [이 부분]()을 참고하시면 됩니다.
+
+게시물을 쿼리한 후, drizzle orm을 활용해서 **numberOfPosts** 값도 반환합니다.
+
+```ts
+numberOfPosts = await db.select({ count: count() }).from(posts);
+```
+
+마지막으로 **allPosts** 와 **numberOfPosts** 값을 클라이언트로 반환합니다.
