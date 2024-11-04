@@ -505,3 +505,108 @@ export async function createPostAction(formData: FormData, postTitle: string) {
 ...
 }
 ```
+
+클라이언트의 폼(form) 구조에 대해서는 [이 부분]()에서 설명합니다.
+
+이후, **contentArray** 이라는 변수를 생성하여, 위 각각의 배열에 있는 값들을 하나의 오브젝트로 묶어줍니다.
+
+```ts
+let contentArray = []
+
+for (let i = 0; i < photoIdsArray.length; i++) {
+  contentArray[i] = {
+    photoTitle: photoTitlesArray[i],
+    photoDescription: photoDescriptionsArray[i],
+    photoImage: photoImagesArray[i],
+    camera: photoCamerasArray[i],
+    lens: photoLensArray[i],
+    film: photoFilmsArray[i]
+  }
+}
+```
+
+이 과정 이후, **contentArray** 값은 이렇게 생깁니다.
+
+```ts
+[
+  {
+    photoTitle: "",
+    photoDescription: "",
+    photoImage: "",
+    camera: "",
+    lens: "",
+    film: ""
+  },
+  {
+    photoTitle: "",
+    photoDescription: "",
+    photoImage: "",
+    camera: "",
+    lens: "",
+    film: ""
+  }
+  ...
+]
+```
+
+다음으로, drizzle을 사용해서 새로운 게시물(post)을 생성합니다.
+
+```ts
+const post = await db.insert(posts).values({
+  title: postTitle
+}).returning({
+  postId: posts.id,
+})
+```
+
+**postId** 값도 이후에 사용해야 하기 때문에 반환해줍니다.
+
+이후, 실제 사진들(+ 각 사진의 설명, 제목, 이미지 주소 등)을 저장해줍니다. 먼저, 이 코드를 한 번 살펴봅시다.
+
+```ts
+const uploadAllImages = async (contents: any) => {
+  const client = new S3Client({
+    region: process.env.BUCKET_REGION,
+    credentials: {
+      accessKeyId: process.env.ACCESS_KEY_ID as string,
+      secretAccessKey: process.env.SECRET_ACCESS_KEY as string,
+    }
+  })
+  for (let i = 0; i < contents.length; i++) {
+    await createPhoto(contents[i], client)
+  }
+}
+
+await uploadAllImages(contentArray)
+```
+
+`uploadAllImages`이라는 함수를 생성합니다. 이 함수는 제 AWS S3 버킷에 엑세스하기 위해 필요합니다. **contentArray**의 length번 루핑하여 루핑할 때마다 `createPhoto`함수를 호출합니다. 그럼, `createPhoto`함수를 살펴봅시다.
+
+```ts
+const createPhoto = async (content, client) => {
+
+  try {
+    const imageName = randomBytes(16).toString("hex")
+
+    const command = new PutObjectCommand({
+      Bucket: process.env.BUCKET_NAME,
+      Key: imageName,
+      ContentType: content.photoImage.type
+    })
+
+
+    const preSignedUrl = await getSignedUrl(client, command, {
+      expiresIn: 30
+    })
+
+    const upload = await fetch(preSignedUrl, {
+      method: "PUT",
+      body: content.photoImage,
+      headers: {
+        "Content-Type": content.photoImage.type
+      }
+    })
+  } catch { ... }
+...
+}
+```
