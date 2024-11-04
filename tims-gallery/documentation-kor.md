@@ -610,3 +610,49 @@ const createPhoto = async (content, client) => {
 ...
 }
 ```
+
+루프를 할 때마다 사진이 S3에  업로드 + 이미지 주소 반환 + drizzle을 활용항 데이터베이스에 저장의 과정을 거칩니다.
+
+먼저, `crypto`의 **randomBytes**를 활용하여 사진의 고유 이름을 생성해줍니다. 이후, **PutObjectCommand**의 인스턴스를 하나 새로 생성하여 필요한 설정을 해줍니다.
+
+**signed URL**을 얻게되는데, 해당 URL은 저의 S3버킷에 엑세스 하는데 필요합니다. **signed URL**을 받은 후, 해당 주소로 사진을 저장합니다.
+
+```ts
+if (upload.ok) {
+  const s3FileUrl = `https://${process.env.CDN_URL}.cloudfront.net/${imageName}`
+
+  await db.insert(photos).values({
+    title: content.photoTitle,
+    description: content.photoDescription,
+    imageUrl: s3FileUrl,
+    camera: content.camera,
+    lens: content.lens,
+    film: content.film,
+    postId: post[0].postId
+  })
+
+} else {
+  return {
+    error: "Error while creating photo",
+  }
+} else { ... }
+```
+
+S3로 업로드가 성공적이면 **s3FileUrl**라는 변수를 생성하여 사진의 주소를 값으로 할당합니다. 해당 주소를 사용하여 유저에게 사진을 보여줄 겁니다. 또한, AWS Cloudfront를 사용하기 때문에, 사진의 주소를 이렇게 설정하였습니다.
+
+```
+https://${process.env.CDN_URL}.cloudfront.net/${imageName}
+```
+
+사진의 주소를 반환받은 후, 사진과 관련된 정보(사진의 제목, 설명, 장비 내용 등)를 저장하게 됩니다. 위에서 언급된 **postId**가 중요한데요, 이것은 게시물(post)과 사진(photo) 사이에 one-to-many relationship을 설정하기 위함입니다.
+
+최종적으로, 대쉬보드 페이지가 revalidate되며 **postTitle**와 **isSuccess**값을 클라이언트로 반환합니다.
+
+```ts
+revalidatePath("/dashboard")
+
+return {
+  data: postTitle,
+  isSuccess: true
+}
+```
