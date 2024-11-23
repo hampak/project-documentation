@@ -664,3 +664,18 @@ return {
 - 게시물의 제목을 수정합니다
 - 새로운 사진을 추가하거나 기존 사진을 삭제합니다
 - 이미 존재하는 사진 + 사진의 설명/장비 등을 수정합니다
+
+유저의 로그인 상태를 확인한 후, 이미 존재하는 게시물의 데이터를 각각의 어레이에 할당합니다.
+
+```ts
+const photoIdsArray = formData.getAll("photoId")
+const photoTitlesArray = formData.getAll("photoTitle")
+const photoDescriptionsArray = formData.getAll("photoDescription")
+const photoImagesArray = formData.getAll("photoImageUrl")
+const photoNewImagesArray = formData.getAll("newPhotoImage")
+const photoCamerasArray = formData.getAll("photoCamera")
+const photoLensArray = formData.getAll("photoLens")
+const photoFilmsArray = formData.getAll("photoFilm")
+const photoPostIdsArray = formData.getAll("photoPostId")
+```
+
